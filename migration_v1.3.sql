@@ -39,8 +39,8 @@ VALUES
   ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'restitution-lab@nordic-extracts.no', 'andelshaver', FALSE, FALSE)
 ON CONFLICT (email) DO UPDATE SET partner_level = EXCLUDED.partner_level;
 
--- B. Insert B2C Luxury Products
-INSERT INTO products (shopify_product_id, name, thc_percentage, supplier_id, price, tags, description_standard, description_compliant)
+-- B. Insert B2C Luxury Products (with category for shop grouping)
+INSERT INTO products (shopify_product_id, name, thc_percentage, supplier_id, price, category, tags, description_standard, description_compliant)
 VALUES
   (
     'prod-sleep-drops',
@@ -48,6 +48,7 @@ VALUES
     0.00,
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
     649.00,
+    'oils',
     ARRAY['sleep', 'botanical'],
     -- Standard: Explains scientific and health benefits directly (Allowed in countries with soft/no medical claim bans)
     'Premium tinktur baseret på økologisk koldpresset hamp. Formuleret specifikt til at reducere søvnløshed og lindre kronisk smerte ved at regulere centralnervesystemets CB1-receptorer. Indeholder myrcen og linalool for en beroligende, fysiologisk effekt.',
@@ -60,6 +61,7 @@ VALUES
     0.05,
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
     420.00,
+    'topicals',
     ARRAY['recovery', 'topical'],
     -- Standard
     'Målrettet muskelbalsam med høj biotilgængelighed. Formuleret med aktive terpener til at dæmpe inflammation og lindre ledsmerter efter fysisk traume eller hård træning. Interagerer perifert med CB2-receptorer for hurtig lindring.',
@@ -68,6 +70,7 @@ VALUES
   )
 ON CONFLICT (shopify_product_id) DO UPDATE SET
   price = EXCLUDED.price,
+  category = EXCLUDED.category,
   tags = EXCLUDED.tags,
   description_standard = EXCLUDED.description_standard,
   description_compliant = EXCLUDED.description_compliant;
