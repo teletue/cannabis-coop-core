@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import ContentSensor from "@/components/ContentSensor";
 
@@ -29,7 +30,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ContentSensor />
+        <Suspense fallback={null}>
+          <ContentSensor />
+        </Suspense>
         {children}
       </body>
     </html>
