@@ -6,6 +6,19 @@ import { usePathname, useSearchParams } from 'next/navigation';
 // Tracking parameters to capture from URL and persist
 const TRACKING_PARAMS = ['gclid', 'click_id', 'utm_source', 'utm_medium', 'utm_campaign', 'affiliate_id'];
 
+// Attribution cookie names (matching server-side tracker.ts)
+const ATTRIBUTION_COOKIES = {
+  GCLID: 'attr_gclid',
+  CLICK_ID: 'attr_click_id',
+  UTM_SOURCE: 'attr_utm_source',
+  UTM_MEDIUM: 'attr_utm_medium',
+  UTM_CAMPAIGN: 'attr_utm_campaign',
+  AFFILIATE_ID: 'attr_affiliate_id',
+};
+
+// 30 days in seconds
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
 interface TrackingData {
   gclid?: string;
   click_id?: string;
@@ -13,7 +26,6 @@ interface TrackingData {
   utm_medium?: string;
   utm_campaign?: string;
   affiliate_id?: string;
-  captured_at: number;
 }
 
 /**
@@ -33,37 +45,75 @@ function parseTrackingParams(searchParams: URLSearchParams): Partial<TrackingDat
 }
 
 /**
- * Persist tracking data to sessionStorage
+ * Set a first-party cookie with 30-day lifetime
  */
-function persistTrackingData(data: Partial<TrackingData>): void {
-  if (typeof window === 'undefined' || !window.sessionStorage) return;
+function setAttributionCookie(name: string, value: string): void {
+  if (typeof document === 'undefined') return;
   
   try {
-    const existing = sessionStorage.getItem('tracking_data');
-    const parsed: TrackingData = existing ? JSON.parse(existing) : { captured_at: Date.now() };
-    
-    // Merge new data, preferring existing values if already set
-    const merged: TrackingData = {
-      ...parsed,
-      ...data,
-      captured_at: parsed.captured_at || Date.now(),
-    };
-    
-    sessionStorage.setItem('tracking_data', JSON.stringify(merged));
+    const secure = window.location.protocol === 'https:' ? '; secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${COOKIE_MAX_AGE}; path=/; samesite=lax${secure}`;
   } catch (e) {
-    console.warn('Failed to persist tracking data:', e);
+    console.warn('Failed to set attribution cookie:', e);
   }
 }
 
 /**
- * Get persisted tracking data from sessionStorage
+ * Persist attribution data to first-party cookies (30-day lifetime)
  */
-export function getTrackingData(): TrackingData | null {
-  if (typeof window === 'undefined' || !window.sessionStorage) return null;
+function persistTrackingData(data: Partial<TrackingData>): void {
+  if (typeof document === 'undefined') return;
   
   try {
-    const data = sessionStorage.getItem('tracking_data');
-    return data ? JSON.parse(data) : null;
+    if (data.gclid) setAttributionCookie(ATTRIBUTION_COOKIES.GCLID, data.gclid);
+    if (data.click_id) setAttributionCookie(ATTRIBUTION_COOKIES.CLICK_ID, data.click_id);
+    if (data.utm_source) setAttributionCookie(ATTRIBUTION_COOKIES.UTM_SOURCE, data.utm_source);
+    if (data.utm_medium) setAttributionCookie(ATTRIBUTION_COOKIES.UTM_MEDIUM, data.utm_medium);
+    if (data.utm_campaign) setAttributionCookie(ATTRIBUTION_COOKIES.UTM_CAMPAIGN, data.utm_campaign);
+    if (data.affiliate_id) setAttributionCookie(ATTRIBUTION_COOKIES.AFFILIATE_ID, data.affiliate_id);
+  } catch (e) {
+    console.warn('Failed to persist tracking data to cookies:', e);
+  }
+}
+
+/**
+ * Get attribution data from cookies (for client-side use)
+ * Server-side should use lib/tracker.ts getAttributionCookies()
+ */
+export function getTrackingData(): TrackingData | null {
+  if (typeof document === 'undefined') return null;
+  
+  try {
+    const cookies = document.cookie.split(';');
+    const data: Partial<TrackingData> = {};
+    
+    cookies.forEach(cookie => {
+      const [name, value] = cookie.trim().split('=');
+      const decodedValue = decodeURIComponent(value || '');
+      
+      switch (name) {
+        case ATTRIBUTION_COOKIES.GCLID:
+          data.gclid = decodedValue;
+          break;
+        case ATTRIBUTION_COOKIES.CLICK_ID:
+          data.click_id = decodedValue;
+          break;
+        case ATTRIBUTION_COOKIES.UTM_SOURCE:
+          data.utm_source = decodedValue;
+          break;
+        case ATTRIBUTION_COOKIES.UTM_MEDIUM:
+          data.utm_medium = decodedValue;
+          break;
+        case ATTRIBUTION_COOKIES.UTM_CAMPAIGN:
+          data.utm_campaign = decodedValue;
+          break;
+        case ATTRIBUTION_COOKIES.AFFILIATE_ID:
+          data.affiliate_id = decodedValue;
+          break;
+      }
+    });
+    
+    return Object.keys(data).length > 0 ? data as TrackingData : null;
   } catch (e) {
     return null;
   }

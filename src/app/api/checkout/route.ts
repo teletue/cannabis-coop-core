@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { after } from 'next/server';
+import { getAttributionCookies } from '@/lib/tracker';
 
 export const runtime = 'nodejs';
 
@@ -19,8 +20,8 @@ interface CheckoutPayload {
  * Simulated B2C checkout endpoint for luxury wellness products.
  * 
  * This endpoint:
- * 1. Receives product and tracking data from the frontend
- * 2. Persists tracking parameters from sessionStorage/cookies
+ * 1. Receives product data from the frontend
+ * 2. Reads 30-day attribution cookies server-side (primary source)
  * 3. Forwards the order to the Shopify webhook handler internally
  * 
  * Tracking parameters are captured for:
@@ -28,6 +29,8 @@ interface CheckoutPayload {
  * - click_id: Generic click tracking ID
  * - utm_source: Campaign source attribution
  * - affiliate_id: Partner/affiliate identifier
+ * 
+ * The 30-day cookies ensure attribution persists across closed browser tabs.
  */
 export async function POST(request: Request) {
   try {
@@ -36,12 +39,17 @@ export async function POST(request: Request) {
       productId, 
       productName, 
       price, 
-      email, 
-      gclid, 
-      click_id, 
-      utm_source, 
-      affiliate_id 
+      email
     } = body;
+
+    // Read 30-day attribution cookies server-side (primary source)
+    const cookieAttribution = await getAttributionCookies();
+    
+    // Use client-sent values as fallback, but prefer server-side cookies
+    const gclid = cookieAttribution.gclid || body.gclid;
+    const click_id = cookieAttribution.click_id || body.click_id;
+    const utm_source = cookieAttribution.utm_source || body.utm_source;
+    const affiliate_id = cookieAttribution.affiliate_id || body.affiliate_id;
 
     // Validate required fields
     if (!productId || !productName || !price || !email) {
