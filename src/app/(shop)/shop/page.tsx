@@ -10,6 +10,7 @@ interface Product {
   price: number;
   thc_percentage: number;
   category: string;
+  image_url?: string;
 }
 
 async function getProducts(countryCode: string): Promise<Product[]> {
@@ -26,7 +27,8 @@ async function getProducts(countryCode: string): Promise<Product[]> {
         ${medicalClaimsForbidden ? 'description_compliant' : 'description_standard'} as description,
         price,
         thc_percentage,
-        category
+        category,
+        image_url
       FROM products
       WHERE thc_percentage <= $1
       ORDER BY category, name`,
@@ -40,6 +42,7 @@ async function getProducts(countryCode: string): Promise<Product[]> {
       price: parseFloat(row.price),
       thc_percentage: parseFloat(row.thc_percentage),
       category: row.category,
+      image_url: row.image_url,
     }));
   } catch (error) {
     console.error('Failed to fetch products:', error);

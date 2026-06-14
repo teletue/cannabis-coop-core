@@ -7,7 +7,8 @@ ALTER TABLE products
   ADD COLUMN IF NOT EXISTS description_standard TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS description_compliant TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS tags VARCHAR(50)[] DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS price NUMERIC(10, 2) NOT NULL DEFAULT 0.00;
+  ADD COLUMN IF NOT EXISTS price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 -- 2. EXTEND TRANSACTIONS TABLE WITH ATTRIBUTION COLUMNS
 ALTER TABLE transactions
@@ -40,7 +41,7 @@ VALUES
 ON CONFLICT (email) DO UPDATE SET partner_level = EXCLUDED.partner_level;
 
 -- B. Insert B2C Luxury Products (with category for shop grouping)
-INSERT INTO products (shopify_product_id, name, thc_percentage, supplier_id, price, category, tags, description_standard, description_compliant)
+INSERT INTO products (shopify_product_id, name, thc_percentage, supplier_id, price, category, image_url, tags, description_standard, description_compliant)
 VALUES
   (
     'prod-sleep-drops',
@@ -49,6 +50,7 @@ VALUES
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
     649.00,
     'oils',
+    'https://images.unsplash.com/photo-1555633514-abcee6ab92e1?auto=format&fit=crop&w=800&q=80',
     ARRAY['sleep', 'botanical'],
     -- Standard: Explains scientific and health benefits directly (Allowed in countries with soft/no medical claim bans)
     'Premium tinktur baseret på økologisk koldpresset hamp. Formuleret specifikt til at reducere søvnløshed og lindre kronisk smerte ved at regulere centralnervesystemets CB1-receptorer. Indeholder myrcen og linalool for en beroligende, fysiologisk effekt.',
@@ -62,6 +64,7 @@ VALUES
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
     420.00,
     'topicals',
+    'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=800&q=80',
     ARRAY['recovery', 'topical'],
     -- Standard
     'Målrettet muskelbalsam med høj biotilgængelighed. Formuleret med aktive terpener til at dæmpe inflammation og lindre ledsmerter efter fysisk traume eller hård træning. Interagerer perifert med CB2-receptorer for hurtig lindring.',
@@ -71,6 +74,7 @@ VALUES
 ON CONFLICT (shopify_product_id) DO UPDATE SET
   price = EXCLUDED.price,
   category = EXCLUDED.category,
+  image_url = EXCLUDED.image_url,
   tags = EXCLUDED.tags,
   description_standard = EXCLUDED.description_standard,
   description_compliant = EXCLUDED.description_compliant;
