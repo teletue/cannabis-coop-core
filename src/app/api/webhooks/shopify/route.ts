@@ -68,12 +68,20 @@ export async function POST(request: Request) {
         // B. Calculate points generated (1 DKK = 1 Point)
         const pointsGenerated = parseFloat(totalAmount);
 
-        // C. Insert transaction. ON CONFLICT (shopify_order_id) DO NOTHING silently drops duplicates.
+        // C. Extract tracking parameters from payload (for paid media & affiliate attribution)
+        const gclid = payload.gclid || payload.attributes?.gclid || null;
+        const clickId = payload.click_id || payload.attributes?.click_id || null;
+        const utmSource = payload.utm_source || payload.attributes?.utm_source || null;
+        const affiliateId = payload.affiliate_id || payload.attributes?.affiliate_id || null;
+        const productId = payload.product_id || payload.attributes?.product_id || null;
+
+        // D. Insert transaction with tracking data. ON CONFLICT (shopify_order_id) DO NOTHING silently drops duplicates.
         const txResult = await query(
-          `INSERT INTO transactions (member_id, shopify_order_id, amount, points_generated, status)
-           VALUES ($1, $2, $3, $4, 'completed')
+          `INSERT INTO transactions 
+           (member_id, shopify_order_id, amount, points_generated, status, gclid, click_id, utm_source, affiliate_id, product_id)
+           VALUES ($1, $2, $3, $4, 'completed', $5, $6, $7, $8, $9)
            ON CONFLICT (shopify_order_id) DO NOTHING`,
-          [member.id, String(orderId), parseFloat(totalAmount), pointsGenerated]
+          [member.id, String(orderId), parseFloat(totalAmount), pointsGenerated, gclid, clickId, utmSource, affiliateId, productId]
         );
 
         if (txResult.rowCount === 0) {
