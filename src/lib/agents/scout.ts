@@ -38,9 +38,9 @@ Returner KUN et JSON-objekt i præcis dette format uden markdown-formatering:
 }`;
 
 export async function runScout(signal: RawSignal): Promise<ScoutOutput> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw new Error('[Scout] OPENAI_API_KEY is not set');
+    throw new Error('[Scout] GOOGLE_API_KEY is not set');
   }
 
   const userContent = JSON.stringify({
@@ -52,40 +52,51 @@ export async function runScout(signal: RawSignal): Promise<ScoutOutput> {
     url: signal.source_url,
   });
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  // Gemini 1.5 Flash - generateContent endpoint
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: SCOUT_SYSTEM_PROMPT },
-        { role: 'user', content: userContent },
+      contents: [
+        {
+          parts: [
+            {
+              text: `${SCOUT_SYSTEM_PROMPT}
+
+Analysér dette signal og returner KUN det JSON-objekt:
+${userContent}`,
+            },
+          ],
+        },
       ],
+      generationConfig: {
+        temperature: 0.3,
+        responseMimeType: 'application/json',
+      },
     }),
   });
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`[Scout] OpenAI API error ${res.status}: ${err}`);
+    throw new Error(`[Scout] Gemini API error ${res.status}: ${err}`);
   }
 
   const data = await res.json();
-  const raw = data.choices?.[0]?.message?.content;
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-  if (!raw) throw new Error('[Scout] Empty response from OpenAI');
+  if (!raw) throw new Error('[Scout] Empty response from Gemini');
 
-  const parsed: ScoutOutput = JSON.parse(raw);
+  // Strip potential markdown code fences if model includes them
+  const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+  const parsed: ScoutOutput = JSON.parse(cleaned);
 
   if (
     typeof parsed.relevancy_score !== 'number' ||
     !parsed.context_briefing
   ) {
-    throw new Error('[Scout] Invalid JSON structure from OpenAI');
+    throw new Error('[Scout] Invalid JSON structure from Gemini');
   }
 
   return parsed;

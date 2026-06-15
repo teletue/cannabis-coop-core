@@ -62,33 +62,45 @@ async function fetchPubMed(maxResults = 10): Promise<RawSignal[]> {
     });
 }
 
-// ─── Google News (via SerpAPI) ────────────────────────────────────────────────
+// ─── Google Custom Search API ───────────────────────────────────────────────
 
-const GOOGLE_NEWS_QUERY = '("cannabinoid" OR "phytochemical") AND ("clinical trial" OR "policy" OR "EU regulation")';
+const GOOGLE_CSE_QUERY = '("cannabinoid" OR "phytochemical") AND ("clinical trial" OR "policy" OR "EU regulation")';
 
 async function fetchGoogleNews(maxResults = 10): Promise<RawSignal[]> {
-  const apiKey = process.env.SERPAPI_KEY;
-  if (!apiKey) {
-    console.warn('[Harvester] SERPAPI_KEY not set – skipping Google News');
+  const apiKey = process.env.GOOGLE_API_KEY;
+  const cseId = process.env.GOOGLE_CSE_ID;
+
+  if (!apiKey || !cseId) {
+    console.warn('[Harvester] GOOGLE_API_KEY or GOOGLE_CSE_ID not set – skipping Google Custom Search');
     return [];
   }
 
-  const url = `https://serpapi.com/search.json?engine=google_news&q=${encodeURIComponent(GOOGLE_NEWS_QUERY)}&num=${maxResults}&api_key=${apiKey}&hl=en&gl=dk`;
+  // Google CSE returns max 10 per request; cap accordingly
+  const num = Math.min(maxResults, 10);
+  const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cseId}&q=${encodeURIComponent(GOOGLE_CSE_QUERY)}&num=${num}&sort=date`;
 
   const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error(`Google News fetch failed: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Google Custom Search failed ${res.status}: ${err}`);
+  }
 
   const data = await res.json();
-  const articles = data.news_results ?? [];
+  const items: Record<string, unknown>[] = data.items ?? [];
 
-  return articles.slice(0, maxResults).map((item: Record<string, unknown>): RawSignal => ({
+  return items.map((item): RawSignal => ({
     source: 'google_news',
-    source_id: String(item.link ?? item.position),
+    source_id: String(item.link ?? item.cacheId ?? item.title),
     source_url: String(item.link ?? ''),
     title: String(item.title ?? ''),
     abstract: String(item.snippet ?? ''),
-    published_at: item.date ? new Date(String(item.date)).toISOString() : null,
-    authors: item.source ? [String((item.source as Record<string, unknown>).name ?? item.source)] : [],
+    published_at: (() => {
+      const dateStr = (item.pagemap as Record<string, unknown[]> | undefined)
+        ?.metatags?.[0] as Record<string, string> | undefined;
+      const raw = dateStr?.['article:published_time'] ?? dateStr?.['og:updated_time'];
+      return raw ? new Date(raw).toISOString() : null;
+    })(),
+    authors: [],
     raw_payload: item,
   }));
 }
