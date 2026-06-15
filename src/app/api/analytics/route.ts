@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
+import { query } from '@/lib/db';
 
 // Daily rotating salt for session hashing (resets on server restart or daily basis)
 let dailySalt = crypto.randomBytes(16).toString('hex');
@@ -44,15 +43,18 @@ export async function POST(request: Request) {
       timestamp: timestamp || Date.now(),
     };
 
-    // Log the event. In production, this can be streamed to a queue, PostgreSQL,
-    // or file storage. For simplicity and compliance, we write to a local log file.
-    const logDir = path.join(process.cwd(), 'logs');
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-
-    const logPath = path.join(logDir, 'analytics.jsonl');
-    fs.appendFileSync(logPath, JSON.stringify(eventData) + '\n', 'utf8');
+    // Log event to Supabase conversions table (async, non-blocking)
+    query(
+      `INSERT INTO conversions (session_id, event_type, path, metadata)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT DO NOTHING`,
+      [
+        eventData.sessionId,
+        eventData.eventType,
+        eventData.url,
+        JSON.stringify({ elementId: eventData.elementId, timestamp: eventData.timestamp }),
+      ]
+    ).catch((err) => console.error('[Analytics] DB insert failed:', err));
 
     return NextResponse.json({ success: true, logged: eventData.sessionId });
   } catch (error) {

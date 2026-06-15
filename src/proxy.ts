@@ -47,7 +47,7 @@ function parseUtmParams(url: URL): Record<string, string> {
  * Middleware for attribution tracking and geofencing
  * Runs on: /, /journal/*, /shop/* (configured in matcher below)
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const url = request.nextUrl;
   const response = NextResponse.next();
   

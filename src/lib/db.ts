@@ -1,22 +1,27 @@
 import { Pool } from 'pg';
 
-// Vi fjerner fallback til localhost for at undgå 'ECONNREFUSED' fejl i produktion.
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not defined');
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('[DB] DATABASE_URL environment variable is not set. Configure it in Vercel → Settings → Environment Variables.');
+  }
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    });
+  }
+  return pool;
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
-
-export default pool;
+export default { query: (text: string, params?: any[]) => query(text, params) };
 
 export async function query(text: string, params?: any[]) {
   const start = Date.now();
   
   try {
-    const res = await pool.query(text, params);
+    const res = await getPool().query(text, params);
     const duration = Date.now() - start;
     
     // Debug logging in development
