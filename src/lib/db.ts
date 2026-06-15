@@ -14,10 +14,32 @@ export default pool;
 
 export async function query(text: string, params?: any[]) {
   const start = Date.now();
-  const res = await pool.query(text, params);
-  const duration = Date.now() - start;
-  if (process.env.DEBUG_DB) {
-    console.log('Executed query', { text, duration, rowsCount: res.rowCount });
+  
+  try {
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_DB) {
+      console.log('[DB Query]', {
+        text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+        duration: `${duration}ms`,
+        rowsCount: res.rowCount,
+      });
+    }
+    
+    return res;
+  } catch (error) {
+    // Explicit error logging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    
+    console.error('[DB Error]', {
+      error: errorMessage,
+      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      params: params ? '[REDACTED]' : undefined, // Don't log actual params for security
+    });
+    
+    // Re-throw with more context
+    throw new Error(`Database query failed: ${errorMessage}`);
   }
-  return res;
 }
