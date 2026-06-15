@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { resolveImageUrl } from '@/lib/storage';
 
 interface ArticleHeaderProps {
   title: string;
@@ -14,20 +15,33 @@ export default function ArticleHeader({ title, author, heroImageUrl, publishedAt
     day: 'numeric',
   });
 
+  const resolvedImageUrl = resolveImageUrl(heroImageUrl);
+
   return (
     <header className="mb-12">
       {/* Hero Image */}
-      <div className="relative w-full aspect-[21/9] mb-8 rounded-lg overflow-hidden bg-[#E2E8F0]">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-[#9CAF88]/20 flex items-center justify-center">
-              <svg className="w-10 h-10 text-[#6B8E6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+      <div className="relative w-full aspect-[21/9] mb-8 overflow-hidden bg-[#E2E8F0]">
+        {resolvedImageUrl ? (
+          <Image
+            src={resolvedImageUrl}
+            alt={title}
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-[#9CAF88]/20 flex items-center justify-center">
+                <svg className="w-10 h-10 text-[#6B8E6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-sm text-[#718096]">No image available</span>
             </div>
-            <span className="text-sm text-[#718096]">Hero Image</span>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Title & Meta */}

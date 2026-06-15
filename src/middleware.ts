@@ -1,3 +1,4 @@
+// v1.4 Attribution Engine - Next.js 16 Compatible
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
