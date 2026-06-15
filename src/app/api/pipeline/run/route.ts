@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { runHarvester } from '@/lib/agents/harvester';
-import { runScout, PROMOTION_THRESHOLD } from '@/lib/agents/scout';
+import { runScout, runScoutWithGrounding, PROMOTION_THRESHOLD } from '@/lib/agents/scout';
 import type { RawSignal } from '@/lib/agents/harvester';
 
 /**
@@ -25,6 +25,7 @@ export async function POST(request: Request) {
 
   const stats = {
     harvested: 0,
+    grounded: 0,
     already_known: 0,
     scored: 0,
     promoted: 0,
@@ -32,17 +33,66 @@ export async function POST(request: Request) {
     errors: [] as string[],
   };
 
-  // ── Step 1: Harvest ──────────────────────────────────────────────────────
+  // ── Step 1a: Harvest PubMed signals ──────────────────────────────────────
   let signals: RawSignal[] = [];
   try {
     const result = await runHarvester(10);
-    signals = [...result.pubmed, ...result.google_news];
+    signals = result.pubmed;
     stats.harvested = signals.length;
     stats.errors.push(...result.errors);
-    console.log(`[Pipeline] Harvested ${signals.length} signals`);
+    console.log(`[Pipeline] Harvested ${signals.length} PubMed signals`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: `Harvester failed: ${msg}`, stats }, { status: 500 });
+  }
+
+  // ── Step 1b: Scout-grounded web discovery ────────────────────────────────
+  try {
+    const grounded = await runScoutWithGrounding();
+    stats.grounded = grounded.length;
+    console.log(`[Pipeline] Grounded ${grounded.length} web signals via Gemini Search`);
+
+    for (const g of grounded) {
+      if (!g.title || !g.url) continue;
+      try {
+        const isPromoted = g.scout_output.relevancy_score >= PROMOTION_THRESHOLD;
+        const res = await query(
+          `INSERT INTO raw_content_inbox
+             (source, source_id, source_url, title, abstract, relevancy_score, scout_output, scored_at, status)
+           VALUES ('google_grounding', $1, $2, $3, $4, $5, $6, NOW(), $7)
+           ON CONFLICT (source, source_id) DO NOTHING
+           RETURNING id`,
+          [
+            g.url,
+            g.url,
+            g.title,
+            g.snippet ?? '',
+            g.scout_output.relevancy_score,
+            JSON.stringify(g.scout_output),
+            isPromoted ? 'promoted' : 'below_threshold',
+          ]
+        );
+
+        if (res.rows.length > 0 && isPromoted) {
+          await query(
+            `INSERT INTO draft_articles
+               (inbox_id, title, scout_output, relevancy_score, tags, pipeline_stage, review_status)
+             VALUES ($1, $2, $3, $4, $5, 'scout', 'pending_review')
+             ON CONFLICT DO NOTHING`,
+            [res.rows[0].id, g.title, JSON.stringify(g.scout_output), g.scout_output.relevancy_score, []]
+          );
+          stats.promoted++;
+        } else if (res.rows.length === 0) {
+          stats.already_known++;
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        stats.errors.push(`Grounded DB insert (${g.url}): ${msg}`);
+      }
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    stats.errors.push(`Scout Grounding: ${msg}`);
   }
 
   // ── Step 2: Persist raw signals (deduplicated) ───────────────────────────
