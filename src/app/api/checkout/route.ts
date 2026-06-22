@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { after } from 'next/server';
 import { getAttributionCookies } from '@/lib/tracker';
+import { getActiveGateway } from '@/lib/payments/router';
 
 export const runtime = 'nodejs';
 
@@ -8,50 +8,31 @@ interface CheckoutPayload {
   productId: string;
   productName: string;
   price: number;
+  currency?: string;
   email: string;
-  gclid?: string;
-  click_id?: string;
-  utm_source?: string;
-  affiliate_id?: string;
 }
 
 /**
  * POST /api/checkout
- * Simulated B2C checkout endpoint for luxury wellness products.
- * 
- * This endpoint:
- * 1. Receives product data from the frontend
- * 2. Reads 30-day attribution cookies server-side (primary source)
- * 3. Forwards the order to the Shopify webhook handler internally
- * 
- * Tracking parameters are captured for:
- * - gclid: Google Click Identifier (Google Ads)
- * - click_id: Generic click tracking ID
- * - utm_source: Campaign source attribution
- * - affiliate_id: Partner/affiliate identifier
- * 
- * The 30-day cookies ensure attribution persists across closed browser tabs.
+ * Real B2C checkout endpoint.
+ *
+ * Flow:
+ * 1. Validate payload
+ * 2. Read attribution cookies (set by proxy.ts)
+ * 3. Select active payment gateway from the payment_gateways DB table
+ * 4. Create a payment via the gateway adapter
+ * 5. Return { redirectUrl } — client navigates the user to the payment page
+ *
+ * On return from the gateway the user lands on /checkout/success or /checkout/cancel.
+ * The gateway POSTs a server-side webhook to /api/webhooks/payment which writes
+ * the transaction to the DB.
  */
 export async function POST(request: Request) {
   try {
     const body: CheckoutPayload = await request.json();
-    const { 
-      productId, 
-      productName, 
-      price, 
-      email
-    } = body;
+    const { productId, productName, price, email } = body;
+    const currency = body.currency ?? 'DKK';
 
-    // Read 30-day attribution cookies server-side (primary source)
-    const cookieAttribution = await getAttributionCookies();
-    
-    // Use client-sent values as fallback, but prefer server-side cookies
-    const gclid = cookieAttribution.gclid || body.gclid;
-    const click_id = cookieAttribution.click_id || body.click_id;
-    const utm_source = cookieAttribution.utm_source || body.utm_source;
-    const affiliate_id = cookieAttribution.affiliate_id || body.affiliate_id;
-
-    // Validate required fields
     if (!productId || !productName || !price || !email) {
       return NextResponse.json(
         { error: 'Missing required fields: productId, productName, price, email' },
@@ -59,80 +40,40 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate mock order ID
-    const mockOrderId = `mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    // Read attribution cookies captured by proxy.ts
+    const attribution = await getAttributionCookies();
 
-    // Construct internal webhook payload matching Shopify format
-    const webhookPayload = {
-      id: mockOrderId,
-      email: email,
-      total_price: price.toString(),
-      customer: { email: email },
-      // Pass tracking parameters in attributes for the webhook to extract
-      attributes: {
-        gclid: gclid || null,
-        click_id: click_id || null,
-        utm_source: utm_source || null,
-        affiliate_id: affiliate_id || null,
-        product_id: productId,
-      },
-      // Also include at root level for compatibility
-      gclid: gclid || null,
-      click_id: click_id || null,
-      utm_source: utm_source || null,
-      affiliate_id: affiliate_id || null,
-      product_id: productId,
-      line_items: [{
-        product_id: productId,
-        title: productName,
-        price: price.toString(),
-      }],
-      created_at: new Date().toISOString(),
-    };
+    // Generate a stable order ID that will be threaded through to the webhook
+    const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    // Respond immediately to client
-    const response = NextResponse.json({
+    // Select gateway and create payment
+    const gateway = await getActiveGateway();
+    const { redirectUrl, gatewayPaymentId } = await gateway.createPayment({
+      id: orderId,
+      amount: price,
+      currency,
+      email,
+      productName,
+    });
+
+    console.log(`[Checkout] Order ${orderId} created via ${gateway.name} (payment: ${gatewayPaymentId})`);
+    if (attribution.gclid || attribution.affiliate_id) {
+      console.log(`[Checkout] Attribution:`, {
+        gclid: attribution.gclid ?? 'none',
+        affiliate_id: attribution.affiliate_id ?? 'none',
+        utm_source: attribution.utm_source ?? 'none',
+      });
+    }
+
+    return NextResponse.json({
       success: true,
-      orderId: mockOrderId,
-      message: 'Order received and processing',
-      tracking: {
-        gclid: gclid || null,
-        affiliate_id: affiliate_id || null,
-      },
+      orderId,
+      redirectUrl,
+      gateway: gateway.name,
     });
-
-    // Asynchronously forward to Shopify webhook handler
-    after(async () => {
-      try {
-        const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/shopify`;
-        
-        // In mock mode, call the webhook directly without HMAC verification
-        const webhookResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-shopify-hmac-sha256': 'mock-signature',
-          },
-          body: JSON.stringify(webhookPayload),
-        });
-
-        if (webhookResponse.ok) {
-          console.log(`[Checkout] Order ${mockOrderId} forwarded successfully with tracking:`, {
-            gclid: gclid || 'none',
-            affiliate_id: affiliate_id || 'none',
-          });
-        } else {
-          console.error(`[Checkout] Webhook forward failed for order ${mockOrderId}:`, await webhookResponse.text());
-        }
-      } catch (error) {
-        console.error(`[Checkout] Error forwarding order ${mockOrderId}:`, error);
-      }
-    });
-
-    return response;
 
   } catch (error) {
-    console.error('Checkout processing error:', error);
+    console.error('[Checkout] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
