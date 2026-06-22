@@ -1,5 +1,6 @@
 import { query } from '@/lib/db';
 import ArticleTable, { type DraftArticle } from '@/components/ArticleTable';
+import PipelineButton from '@/components/PipelineButton';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -57,17 +58,7 @@ export default async function AdminDashboardPage() {
             <span className="text-stone-300">|</span>
             <span className="text-sm text-stone-500 font-medium">Redaktionsdashboard</span>
           </div>
-          <a
-            href="/api/pipeline/run"
-            className="text-xs px-3 py-1.5 bg-stone-800 text-white rounded hover:bg-stone-600 transition font-medium"
-            onClick={e => {
-              e.preventDefault();
-              fetch('/api/pipeline/run', { method: 'POST' })
-                .then(() => window.location.reload());
-            }}
-          >
-            Kør pipeline
-          </a>
+          <PipelineButton />
         </div>
       </header>
 
