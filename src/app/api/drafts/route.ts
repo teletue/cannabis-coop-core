@@ -62,7 +62,8 @@ export async function PATCH(request: Request) {
          affiliate_link = COALESCE($7, affiliate_link),
          reviewed_at    = CASE WHEN $2 IN ('approved', 'rejected', 'published') THEN NOW() ELSE reviewed_at END
        WHERE id = $1
-       RETURNING id, title, review_status, slug, affiliate_link, updated_at`,
+       RETURNING id, title, review_status, slug, affiliate_link, body, author,
+                 hero_image_url, tags, excerpt, updated_at`,
       [id, review_status ?? null, articleBody ?? null, slug ?? null, rejection_note ?? null, reviewed_by ?? null, affiliate_link ?? null]
     );
 
@@ -70,7 +71,46 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ draft: res.rows[0] });
+    const draft = res.rows[0];
+
+    // When publishing, copy into journal_articles so /journal can display it
+    if (draft.review_status === 'published') {
+      // Generate slug from title if missing
+      const finalSlug = draft.slug ?? draft.title
+        .toLowerCase()
+        .replace(/[æ]/g, 'ae').replace(/[ø]/g, 'oe').replace(/[å]/g, 'aa')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 80);
+
+      await query(
+        `INSERT INTO journal_articles (slug, title, body, author, hero_image_url, tags, published_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW())
+         ON CONFLICT (slug) DO UPDATE SET
+           title          = EXCLUDED.title,
+           body           = EXCLUDED.body,
+           author         = EXCLUDED.author,
+           hero_image_url = EXCLUDED.hero_image_url,
+           tags           = EXCLUDED.tags,
+           published_at   = EXCLUDED.published_at`,
+        [
+          finalSlug,
+          draft.title,
+          draft.body ?? draft.excerpt ?? '',
+          draft.author ?? 'Redaktionen',
+          draft.hero_image_url ?? '',
+          draft.tags ?? [],
+        ]
+      );
+
+      // Store the final slug back on the draft
+      if (!draft.slug) {
+        await query(`UPDATE draft_articles SET slug = $1 WHERE id = $2`, [finalSlug, id]);
+        draft.slug = finalSlug;
+      }
+    }
+
+    return NextResponse.json({ draft });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 500 });
