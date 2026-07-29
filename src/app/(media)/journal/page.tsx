@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { query } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 interface Article {
   slug: string;
   title: string;
@@ -15,6 +17,7 @@ async function getArticles(): Promise<Article[]> {
     const result = await query(
       `SELECT slug, title, author, hero_image_url, tags, published_at
        FROM journal_articles
+       WHERE status = 'published'
        ORDER BY published_at DESC`
     );
     return result.rows;

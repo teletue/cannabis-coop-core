@@ -5,6 +5,8 @@ import ArticleHeader from '@/components/media/ArticleHeader';
 import ArticleContent from '@/components/media/ArticleContent';
 import ArticleFooter from '@/components/media/ArticleFooter';
 
+export const dynamic = 'force-dynamic';
+
 interface Article {
   slug: string;
   title: string;
@@ -65,14 +67,3 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   );
 }
 
-// Generate static params for all articles
-export async function generateStaticParams() {
-  try {
-    const result = await query('SELECT slug FROM journal_articles');
-    return result.rows.map((row) => ({
-      slug: row.slug,
-    }));
-  } catch (error) {
-    return [];
-  }
-}
