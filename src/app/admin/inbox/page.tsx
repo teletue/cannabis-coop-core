@@ -58,7 +58,11 @@ export default async function InboxPage() {
         ) : (
           <div className="space-y-3">
             {items.map(item => (
-              <div key={item.id} className="bg-white border border-stone-200 rounded-xl p-5">
+              <Link
+                key={item.id}
+                href={`/admin/inbox/${item.id}`}
+                className="block bg-white border border-stone-200 rounded-xl p-5 hover:border-stone-400 hover:shadow-sm transition"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
@@ -76,22 +80,15 @@ export default async function InboxPage() {
                     {item.abstract && (
                       <p className="text-xs text-stone-500 mt-1.5 leading-relaxed line-clamp-2">{item.abstract}</p>
                     )}
-                    {item.source_url && (
-                      <a
-                        href={item.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-stone-400 hover:text-stone-600 mt-2 block truncate"
-                      >
-                        {item.source_url}
-                      </a>
-                    )}
                   </div>
-                  <p className="text-xs text-stone-400 whitespace-nowrap flex-shrink-0">
-                    {new Date(item.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}
-                  </p>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <p className="text-xs text-stone-400 whitespace-nowrap">
+                      {new Date(item.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}
+                    </p>
+                    <span className="text-xs text-stone-400">Rediger →</span>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
