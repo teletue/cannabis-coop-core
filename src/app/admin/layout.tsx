@@ -52,5 +52,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <div className="fixed bottom-4 right-4 z-50">
+        <form action="/api/admin/logout" method="POST">
+          <button
+            type="submit"
+            className="text-xs px-3 py-1.5 bg-stone-700 text-white rounded-lg hover:bg-stone-600 transition font-medium shadow"
+          >
+            Log ud
+          </button>
+        </form>
+      </div>
+      {children}
+    </>
+  );
 }
