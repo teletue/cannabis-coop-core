@@ -31,10 +31,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         >
           <h2 className="text-lg font-bold text-stone-800 mb-1">Admin Access</h2>
           <p className="text-sm text-stone-500 mb-6">Enter your admin secret to continue.</p>
+          <label htmlFor="admin-secret" className="sr-only">Admin secret</label>
           <input
+            id="admin-secret"
             type="password"
             name="secret"
             required
+            autoComplete="current-password"
             placeholder="Admin secret"
             className="w-full text-sm px-3 py-2 border border-stone-200 rounded-lg mb-4 focus:outline-none focus:border-stone-400"
           />
