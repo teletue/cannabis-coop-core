@@ -48,7 +48,15 @@ export default async function InboxPage() {
             <span className="text-stone-300">|</span>
             <span className="text-sm font-semibold text-stone-800">Råsignaler</span>
           </div>
-          <span className="text-xs text-stone-400">{items.length} signaler</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-stone-400">{items.length} signaler</span>
+            <Link
+              href="/admin/signals/new"
+              className="text-xs px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition font-medium"
+            >
+              + Nyt signal
+            </Link>
+          </div>
         </div>
       </header>
 

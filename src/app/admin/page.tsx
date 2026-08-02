@@ -17,9 +17,12 @@ async function getStats() {
 }
 
 const NAV = [
-  { href: '/admin/articles', label: 'Journal Articles', desc: 'Rediger publiceret indhold direkte', icon: '📰' },
-  { href: '/admin/drafts',   label: 'Kladder',          desc: 'Pipeline-genererede artikler til review', icon: '📝' },
-  { href: '/admin/inbox',    label: 'Råsignaler',       desc: 'Harvestede kilder og scorede signaler', icon: '📥' },
+  { href: '/admin/articles',     label: 'Journal Articles',  desc: 'Rediger publiceret indhold direkte',       icon: '📰' },
+  { href: '/admin/feltnoter',    label: 'Feltnoter',          desc: 'Original redaktionel kommentar',            icon: '✍️' },
+  { href: '/admin/drafts',       label: 'Kladder',            desc: 'Pipeline-genererede artikler til review',  icon: '📝' },
+  { href: '/admin/inbox',        label: 'Råsignaler',         desc: 'Harvestede kilder og scorede signaler',    icon: '📥' },
+  { href: '/admin/signals/new',  label: 'Nyt signal',         desc: 'Indfang signal manuelt fra enhver kilde',  icon: '📡' },
+  { href: '/admin/sources',      label: 'Kilder',             desc: 'Administrer kilderegistret',               icon: '🗂' },
 ];
 
 export default async function AdminPage() {
