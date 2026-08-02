@@ -40,7 +40,11 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, review_status, body: articleBody, slug, rejection_note, reviewed_by, affiliate_link } = body;
+    const {
+      id, review_status, body: articleBody, slug, rejection_note,
+      reviewed_by, affiliate_link, title, excerpt, author,
+      hero_image_url, tags,
+    } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'Missing draft id' }, { status: 400 });
@@ -60,11 +64,29 @@ export async function PATCH(request: Request) {
          rejection_note = COALESCE($5, rejection_note),
          reviewed_by    = COALESCE($6, reviewed_by),
          affiliate_link = COALESCE($7, affiliate_link),
+         title          = COALESCE($8, title),
+         excerpt        = COALESCE($9, excerpt),
+         author         = COALESCE($10, author),
+         hero_image_url = COALESCE($11, hero_image_url),
+         tags           = COALESCE($12, tags),
          reviewed_at    = CASE WHEN $2 IN ('approved', 'rejected', 'published') THEN NOW() ELSE reviewed_at END
        WHERE id = $1
        RETURNING id, title, review_status, slug, affiliate_link, body, author,
                  hero_image_url, tags, excerpt, updated_at`,
-      [id, review_status ?? null, articleBody ?? null, slug ?? null, rejection_note ?? null, reviewed_by ?? null, affiliate_link ?? null]
+      [
+        id,
+        review_status ?? null,
+        articleBody ?? null,
+        slug ?? null,
+        rejection_note ?? null,
+        reviewed_by ?? null,
+        affiliate_link ?? null,
+        title ?? null,
+        excerpt ?? null,
+        author ?? null,
+        hero_image_url ?? null,
+        Array.isArray(tags) ? tags : null,
+      ]
     );
 
     if (res.rows.length === 0) {

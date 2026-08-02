@@ -117,17 +117,25 @@ function ArticleRow({ article, onUpdate, onDelete }: {
       <tr className={`border-b border-stone-100 hover:bg-stone-50 transition-colors ${isPending ? 'opacity-50' : ''}`}>
         {/* Titel */}
         <td className="px-4 py-4 max-w-xs">
-          <button
-            onClick={() => setExpanded(e => !e)}
-            className="text-left group"
-          >
-            <p className="text-sm font-semibold text-stone-800 group-hover:text-stone-600 leading-snug line-clamp-2">
-              {article.title}
-            </p>
-            <p className="text-xs text-stone-400 mt-0.5">
-              {new Date(article.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </p>
-          </button>
+          <div className="group">
+            <button
+              onClick={() => setExpanded(e => !e)}
+              className="text-left"
+            >
+              <p className="text-sm font-semibold text-stone-800 hover:text-stone-600 leading-snug line-clamp-2">
+                {article.title}
+              </p>
+              <p className="text-xs text-stone-400 mt-0.5">
+                {new Date(article.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+            </button>
+            <a
+              href={`/admin/drafts/${article.id}`}
+              className="text-[10px] text-stone-400 hover:text-stone-700 mt-1 inline-block"
+            >
+              Rediger →
+            </a>
+          </div>
         </td>
 
         {/* Kilde */}
