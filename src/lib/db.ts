@@ -1,18 +1,25 @@
 import { Pool } from 'pg';
 
-let pool: Pool | null = null;
+// Cache on globalThis so Next.js hot reloads and serverless invocations
+// reuse a single pool instead of opening new connections every time.
+const globalForDb = globalThis as unknown as { __pgPool?: Pool };
 
 function getPool(): Pool {
   if (!process.env.DATABASE_URL) {
     throw new Error('[DB] DATABASE_URL environment variable is not set. Configure it in Vercel → Settings → Environment Variables.');
   }
-  if (!pool) {
-    pool = new Pool({
+  if (!globalForDb.__pgPool) {
+    globalForDb.__pgPool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // Supabase session mode caps total clients (pool_size ~15).
+      // Keep each instance to 1 connection and release it quickly.
+      max: 1,
+      idleTimeoutMillis: 5_000,
+      connectionTimeoutMillis: 10_000,
     });
   }
-  return pool;
+  return globalForDb.__pgPool;
 }
 
 export default { query: (text: string, params?: any[]) => query(text, params) };
