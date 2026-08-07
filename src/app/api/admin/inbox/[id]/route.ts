@@ -25,6 +25,17 @@ export async function PATCH(
       return NextResponse.json({ error: 'relevancy_score must be 1–100 or null' }, { status: 400 });
     }
 
+    // Capture the current abstract before updating, so we can tell whether the
+    // linked draft's body is still the raw text or has been edited by a human.
+    let previousAbstract: string | null = null;
+    if (status === 'ready_for_draft') {
+      const prev = await query(
+        `SELECT abstract FROM raw_content_inbox WHERE id = $1`,
+        [id]
+      );
+      previousAbstract = prev.rows[0]?.abstract ?? null;
+    }
+
     const res = await query(
       `UPDATE raw_content_inbox
        SET
@@ -55,27 +66,29 @@ export async function PATCH(
 
     const signal = res.rows[0];
 
-    // Promote to a draft when the editor marks it ready for the pipeline.
+    // Promote to a draft when the editor marks it ready for the pipeline,
+    // and keep the linked draft in sync on subsequent saves.
     if (status === 'ready_for_draft') {
       const existing = await query(
-        `SELECT id FROM draft_articles WHERE inbox_id = $1 LIMIT 1`,
+        `SELECT id, body FROM draft_articles WHERE inbox_id = $1 LIMIT 1`,
         [id]
       );
 
-      if (existing.rowCount === 0) {
-        const rawRes = await query(
-          `SELECT title, abstract, source_url, relevancy_score, scout_output
-           FROM raw_content_inbox
-           WHERE id = $1`,
-          [id]
-        );
+      const rawRes = await query(
+        `SELECT title, abstract, source_url, relevancy_score, scout_output
+         FROM raw_content_inbox
+         WHERE id = $1`,
+        [id]
+      );
 
-        const raw = rawRes.rows[0];
-        if (raw) {
-          const excerpt = raw.abstract
-            ? raw.abstract.substring(0, 500)
-            : null;
+      const raw = rawRes.rows[0];
+      if (raw) {
+        const excerpt = raw.abstract
+          ? raw.abstract.substring(0, 500)
+          : null;
+        const scoutJson = raw.scout_output ? JSON.stringify(raw.scout_output) : null;
 
+        if (existing.rowCount === 0) {
           const draftRes = await query(
             `INSERT INTO draft_articles (
                inbox_id,
@@ -97,11 +110,38 @@ export async function PATCH(
               'pending_review',
               'editor_review',
               raw.relevancy_score ?? null,
-              raw.scout_output ? JSON.stringify(raw.scout_output) : null,
+              scoutJson,
               'Redaktionen',
             ]
           );
           signal.draft_id = draftRes.rows[0]?.id ?? null;
+        } else {
+          const draftRow = existing.rows[0];
+          // Only overwrite the draft body if it still holds the raw text —
+          // never clobber body copy an editor has rewritten in the draft editor.
+          const bodyUntouched =
+            draftRow.body == null || draftRow.body === previousAbstract;
+
+          await query(
+            `UPDATE draft_articles
+             SET
+               title           = $2,
+               excerpt         = $3,
+               relevancy_score = $4,
+               scout_output    = $5,
+               body            = CASE WHEN $6::boolean THEN $7 ELSE body END
+             WHERE id = $1`,
+            [
+              draftRow.id,
+              raw.title ?? 'Uden titel',
+              excerpt,
+              raw.relevancy_score ?? null,
+              scoutJson,
+              bodyUntouched,
+              raw.abstract ?? null,
+            ]
+          );
+          signal.draft_id = draftRow.id;
         }
       }
     }
