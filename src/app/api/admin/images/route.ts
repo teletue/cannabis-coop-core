@@ -3,7 +3,9 @@ import { uploadArticleImage } from '@/lib/articleImages';
 
 export const runtime = 'nodejs';
 
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+// Vercel serverless caps request bodies at 4.5 MB — stay safely below it
+// (multipart encoding adds overhead on top of the raw file size).
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
 
 /**
  * POST /api/admin/images

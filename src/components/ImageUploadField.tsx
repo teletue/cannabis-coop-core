@@ -17,8 +17,17 @@ export default function ImageUploadField({ value, alt, onChange, onAltChange, la
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const MAX_SIZE = 4 * 1024 * 1024; // Vercel request-body limit is 4.5 MB
+
   const handleFile = async (file: File) => {
     setError(null);
+
+    if (file.size > MAX_SIZE) {
+      setError(`Filen er for stor (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 4 MB — skaler den ned før upload.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     setUploading(true);
     try {
       const formData = new FormData();
@@ -29,8 +38,16 @@ export default function ImageUploadField({ value, alt, onChange, onAltChange, la
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Upload fejlede');
+
+      // Vercel returns plain text (not JSON) for 413 Request Entity Too Large
+      const text = await res.text();
+      let data: { image?: { public_url: string }; error?: string } = {};
+      try { data = JSON.parse(text); } catch { /* non-JSON error body */ }
+
+      if (!res.ok) {
+        throw new Error(data.error ?? (res.status === 413 ? 'Filen er for stor (max 4 MB)' : `Upload fejlede (${res.status})`));
+      }
+      if (!data.image?.public_url) throw new Error('Upload fejlede — intet svar fra serveren');
 
       onChange(data.image.public_url);
     } catch (e) {
@@ -85,7 +102,7 @@ export default function ImageUploadField({ value, alt, onChange, onAltChange, la
           <span className="block text-sm font-medium text-stone-700">
             {uploading ? 'Uploader…' : 'Upload billede'}
           </span>
-          <span className="block text-xs text-stone-400 mt-1">JPG, PNG eller WebP — max 5 MB</span>
+          <span className="block text-xs text-stone-400 mt-1">JPG, PNG eller WebP — max 4 MB</span>
         </button>
       )}
 
