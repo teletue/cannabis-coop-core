@@ -53,7 +53,60 @@ export async function PATCH(
       return NextResponse.json({ error: 'Signal not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ signal: res.rows[0] });
+    const signal = res.rows[0];
+
+    // Promote to a draft when the editor marks it ready for the pipeline.
+    if (status === 'ready_for_draft') {
+      const existing = await query(
+        `SELECT id FROM draft_articles WHERE inbox_id = $1 LIMIT 1`,
+        [id]
+      );
+
+      if (existing.rowCount === 0) {
+        const rawRes = await query(
+          `SELECT title, abstract, source_url, relevancy_score, scout_output
+           FROM raw_content_inbox
+           WHERE id = $1`,
+          [id]
+        );
+
+        const raw = rawRes.rows[0];
+        if (raw) {
+          const excerpt = raw.abstract
+            ? raw.abstract.substring(0, 500)
+            : null;
+
+          const draftRes = await query(
+            `INSERT INTO draft_articles (
+               inbox_id,
+               title,
+               excerpt,
+               body,
+               review_status,
+               pipeline_stage,
+               relevancy_score,
+               scout_output,
+               author
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             RETURNING id`,
+            [
+              id,
+              raw.title ?? 'Uden titel',
+              excerpt,
+              raw.abstract ?? null,
+              'pending_review',
+              'editor_review',
+              raw.relevancy_score ?? null,
+              raw.scout_output ? JSON.stringify(raw.scout_output) : null,
+              'Redaktionen',
+            ]
+          );
+          signal.draft_id = draftRes.rows[0]?.id ?? null;
+        }
+      }
+    }
+
+    return NextResponse.json({ signal });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 500 });
