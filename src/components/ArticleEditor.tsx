@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import ImageUploadField from '@/components/ImageUploadField';
 
 interface Article {
   id: string;
@@ -146,20 +147,13 @@ export default function ArticleEditor({ article }: { article: Article }) {
       {/* Image */}
       <div className="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
         <h2 className="text-sm font-semibold text-stone-800 border-b border-stone-100 pb-3">Billede</h2>
-
-        <Field label="Hero Image URL">
-          <input type="url" value={form.hero_image_url} onChange={set('hero_image_url')} className={`${inputCls} font-mono`} />
-        </Field>
-
-        <Field label="Alt-tekst" hint="Tilgængelighed og SEO">
-          <input type="text" value={form.image_alt} onChange={set('image_alt')} className={inputCls} />
-        </Field>
-
-        {form.hero_image_url && (
-          <div className="rounded-lg overflow-hidden border border-stone-100 aspect-video bg-stone-50">
-            <img src={form.hero_image_url} alt={form.image_alt || 'Preview'} className="w-full h-full object-cover" />
-          </div>
-        )}
+        <ImageUploadField
+          value={form.hero_image_url}
+          alt={form.image_alt}
+          onChange={url => { setForm(f => ({ ...f, hero_image_url: url })); setSaved(false); }}
+          onAltChange={a => { setForm(f => ({ ...f, image_alt: a })); setSaved(false); }}
+          label="Hero-billede"
+        />
       </div>
 
       {/* SEO */}

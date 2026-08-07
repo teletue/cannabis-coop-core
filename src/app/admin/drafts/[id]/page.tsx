@@ -16,6 +16,7 @@ interface Draft {
   relevancy_score: number | null;
   tags: string[];
   hero_image_url: string | null;
+  image_alt: string | null;
   affiliate_link: string | null;
   scout_output: Record<string, unknown> | null;
   created_at: string;
@@ -25,7 +26,7 @@ async function getDraft(id: string): Promise<Draft | null> {
   try {
     const res = await query(
       `SELECT id, title, body, excerpt, author, slug, review_status,
-              relevancy_score, tags, hero_image_url, affiliate_link,
+              relevancy_score, tags, hero_image_url, image_alt, affiliate_link,
               scout_output, created_at
        FROM draft_articles
        WHERE id = $1`,

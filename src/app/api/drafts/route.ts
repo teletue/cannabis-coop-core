@@ -43,8 +43,13 @@ export async function PATCH(request: Request) {
     const {
       id, review_status, body: articleBody, slug, rejection_note,
       reviewed_by, affiliate_link, title, excerpt, author,
-      hero_image_url, tags,
+      hero_image_url, image_alt, tags,
     } = body;
+
+    // Only overwrite these fields when the caller explicitly sends them,
+    // so partial updates (e.g. approve from the list view) don't clear them.
+    const hasHeroImage = 'hero_image_url' in body;
+    const hasImageAlt  = 'image_alt' in body;
 
     if (!id) {
       return NextResponse.json({ error: 'Missing draft id' }, { status: 400 });
@@ -67,12 +72,13 @@ export async function PATCH(request: Request) {
          title          = COALESCE($8, title),
          excerpt        = COALESCE($9, excerpt),
          author         = COALESCE($10, author),
-         hero_image_url = COALESCE($11, hero_image_url),
+         hero_image_url = CASE WHEN $13::boolean THEN $11 ELSE hero_image_url END,
+         image_alt      = CASE WHEN $14::boolean THEN $15 ELSE image_alt END,
          tags           = COALESCE($12, tags),
          reviewed_at    = CASE WHEN $2 IN ('approved', 'rejected', 'published') THEN NOW() ELSE reviewed_at END
        WHERE id = $1
        RETURNING id, title, review_status, slug, affiliate_link, body, author,
-                 hero_image_url, tags, excerpt, updated_at`,
+                 hero_image_url, image_alt, tags, excerpt, updated_at`,
       [
         id,
         review_status ?? null,
@@ -86,6 +92,9 @@ export async function PATCH(request: Request) {
         author ?? null,
         hero_image_url ?? null,
         Array.isArray(tags) ? tags : null,
+        hasHeroImage,
+        hasImageAlt,
+        image_alt ?? null,
       ]
     );
 
@@ -106,13 +115,14 @@ export async function PATCH(request: Request) {
         .substring(0, 80);
 
       await query(
-        `INSERT INTO journal_articles (slug, title, body, author, hero_image_url, tags, published_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        `INSERT INTO journal_articles (slug, title, body, author, hero_image_url, image_alt, tags, published_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
          ON CONFLICT (slug) DO UPDATE SET
            title          = EXCLUDED.title,
            body           = EXCLUDED.body,
            author         = EXCLUDED.author,
            hero_image_url = EXCLUDED.hero_image_url,
+           image_alt      = EXCLUDED.image_alt,
            tags           = EXCLUDED.tags,
            published_at   = EXCLUDED.published_at`,
         [
@@ -121,6 +131,7 @@ export async function PATCH(request: Request) {
           draft.body ?? draft.excerpt ?? '',
           draft.author ?? 'Redaktionen',
           draft.hero_image_url ?? '',
+          draft.image_alt ?? null,
           draft.tags ?? [],
         ]
       );

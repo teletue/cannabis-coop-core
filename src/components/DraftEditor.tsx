@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import ImageUploadField from '@/components/ImageUploadField';
 
 interface Draft {
   id: string;
@@ -13,6 +14,7 @@ interface Draft {
   relevancy_score: number | null;
   tags: string[];
   hero_image_url: string | null;
+  image_alt: string | null;
   affiliate_link: string | null;
   scout_output: Record<string, unknown> | null;
   created_at: string;
@@ -48,6 +50,7 @@ export default function DraftEditor({ draft }: { draft: Draft }) {
     review_status:  draft.review_status,
     tags:           draft.tags.join(', '),
     hero_image_url: draft.hero_image_url ?? '',
+    image_alt:      draft.image_alt ?? '',
     affiliate_link: draft.affiliate_link ?? '',
     rejection_note: '',
   });
@@ -81,7 +84,8 @@ export default function DraftEditor({ draft }: { draft: Draft }) {
           slug:           form.slug || null,
           review_status:  status,
           tags:           form.tags.split(',').map(t => t.trim()).filter(Boolean),
-          hero_image_url: form.hero_image_url,
+          hero_image_url: form.hero_image_url || null,
+          image_alt:      form.image_alt || null,
           affiliate_link: form.affiliate_link || null,
           rejection_note: form.rejection_note || null,
         }),
@@ -172,9 +176,6 @@ export default function DraftEditor({ draft }: { draft: Draft }) {
           <Field label="Forfatter">
             <input type="text" value={form.author} onChange={set('author')} className={inputCls} />
           </Field>
-          <Field label="Hero Image URL">
-            <input type="url" value={form.hero_image_url} onChange={set('hero_image_url')} className={`${inputCls} font-mono`} />
-          </Field>
         </div>
 
         <Field label="Tags" hint="Kommasepareret">
@@ -184,6 +185,18 @@ export default function DraftEditor({ draft }: { draft: Draft }) {
         <Field label="Affiliate-link">
           <input type="url" value={form.affiliate_link} onChange={set('affiliate_link')} className={`${inputCls} font-mono`} />
         </Field>
+      </div>
+
+      {/* Image */}
+      <div className="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+        <h2 className="text-sm font-semibold text-stone-800 border-b border-stone-100 pb-3">Billede</h2>
+        <ImageUploadField
+          value={form.hero_image_url}
+          alt={form.image_alt}
+          onChange={url => { setForm(f => ({ ...f, hero_image_url: url })); setSaved(false); }}
+          onAltChange={a => { setForm(f => ({ ...f, image_alt: a })); setSaved(false); }}
+          label="Hero-billede"
+        />
       </div>
 
       {/* Rejection note */}
