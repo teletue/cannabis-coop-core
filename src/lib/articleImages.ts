@@ -72,8 +72,9 @@ export async function uploadArticleImage(input: UploadArticleImageInput): Promis
 
   const { supabaseUrl, serviceKey } = getConfig();
   const storagePath = `articles/${Date.now()}-${sanitizeFilename(input.filename)}.${ext}`;
+  const uploadUrl = `${supabaseUrl}/storage/v1/object/${BUCKET}/${storagePath}`;
 
-  const uploadRes = await fetch(`${supabaseUrl}/storage/v1/object/${BUCKET}/${storagePath}`, {
+  const uploadRes = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
       Authorization:  `Bearer ${serviceKey}`,
@@ -86,7 +87,7 @@ export async function uploadArticleImage(input: UploadArticleImageInput): Promis
 
   if (!uploadRes.ok) {
     const text = await uploadRes.text();
-    throw new Error(`Supabase Storage upload failed (${uploadRes.status}): ${text}`);
+    throw new Error(`Supabase Storage upload failed (${uploadRes.status}) at ${uploadUrl}: ${text}`);
   }
 
   const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${storagePath}`;
