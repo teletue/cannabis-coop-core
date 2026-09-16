@@ -25,12 +25,13 @@ export async function acceptMarketingConsent(): Promise<{ success: boolean; mess
     const cookieStore = await cookies();
     
     // Set consent cookie (30 days)
+    // httpOnly: false so the CookieConsent banner can read the state client-side
     cookieStore.set(CONSENT_COOKIE, 'true', {
       path: '/',
       maxAge: COOKIE_MAX_AGE,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
+      httpOnly: false,
     });
     
     // If there's already a session_id, extend it to 30 days
@@ -81,10 +82,13 @@ export async function rejectMarketingConsent(): Promise<{ success: boolean; mess
   try {
     const cookieStore = await cookies();
     
-    // Clear consent cookie
-    cookieStore.set(CONSENT_COOKIE, '', {
+    // Remember the rejection (30 days) so the banner doesn't reappear
+    cookieStore.set(CONSENT_COOKIE, 'false', {
       path: '/',
-      maxAge: 0,
+      maxAge: COOKIE_MAX_AGE,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false,
     });
     
     // Clear tracking cookies

@@ -47,6 +47,13 @@ export default function Footer() {
             <h4 className="text-xs font-medium text-[#4A5568] uppercase tracking-wider mb-4">
               Compliance
             </h4>
+            <ul className="space-y-2 text-sm mb-4">
+              <li>
+                <Link href="/privatlivspolitik" className="text-[#718096] hover:text-[#2D3748] transition-colors">
+                  Privatlivspolitik
+                </Link>
+              </li>
+            </ul>
             <p className="text-xs text-[#718096] leading-relaxed">
               All products comply with EU regulations. THC content below 0.3%. 
               Not intended to diagnose, treat, cure, or prevent any disease.
