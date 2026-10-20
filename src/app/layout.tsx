@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import ContentSensor from "@/components/ContentSensor";
 import CookieConsent from "@/components/CookieConsent";
+import SessionCounter from "@/components/SessionCounter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
         </Suspense>
         {children}
         <CookieConsent />
+        <SessionCounter />
       </body>
     </html>
   );

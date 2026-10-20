@@ -120,6 +120,11 @@ export default function Privatlivspolitik() {
                 <td className="py-2">30 dage</td>
               </tr>
               <tr className="border-b border-[#E2E8F0]">
+                <td className="py-2 pr-4">wsc_active</td>
+                <td className="py-2 pr-4">Nødvendig — sessionsmarkør uden indhold; bruges til anonym sessionsoptælling pr. side</td>
+                <td className="py-2">10 minutter</td>
+              </tr>
+              <tr className="border-b border-[#E2E8F0]">
                 <td className="py-2 pr-4">weeds_ref_id, weeds_session_id, attr_*</td>
                 <td className="py-2 pr-4">Attribution — måling af kampagner (kræver samtykke)</td>
                 <td className="py-2">30 dage</td>
