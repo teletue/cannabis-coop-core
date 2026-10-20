@@ -100,11 +100,17 @@ export default async function LandingPage() {
             >
               Journal
             </Link>
-            <Link 
-              href="/shop" 
+            <Link
+              href="/shop"
               className="text-sm text-[#718096] hover:text-[#2D3748] transition-colors"
             >
               Shop
+            </Link>
+            <Link
+              href="/notesbogen"
+              className="text-sm text-[#718096] hover:text-[#2D3748] transition-colors"
+            >
+              Notesbogen
             </Link>
           </div>
         </div>
@@ -312,6 +318,9 @@ export default async function LandingPage() {
             </Link>
             <Link href="/shop" className="text-xs text-[#718096] hover:text-[#2D3748] transition-colors">
               Shop
+            </Link>
+            <Link href="/notesbogen" className="text-xs text-[#718096] hover:text-[#2D3748] transition-colors">
+              Notesbogen
             </Link>
           </div>
         </div>

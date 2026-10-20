@@ -22,3 +22,13 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** src/components/layout/Footer.tsx.
 * **Arkitektonisk konsekvens:** Ingen chrome omvendt: selve notesbogen røres ikke. Kun et diskret dørskilt udefra. Invarianter bevaret.
 ---
+**20. oktober 2026 - 14:52 - SKILT I TOPPEN**
+* **Opgave:** Én footer var næppe nok. Tilføjelse af »Notesbogen« i topnavigationen ved siden af Journal og Shop, så siden kan nås direkte fra hjemmesidens header.
+* **Filer berørt:** src/components/layout/Navigation.tsx.
+* **Arkitektonisk konsekvens:** Samme mønster som eksisterende links inkl. aktiv-tilstand. Selve notesbogen forbliver chrome-fri; kun dørskilte derudefra. Invarianter bevaret.
+---
+**20. oktober 2026 - 14:56 - HJEMMESIDENS FORFALSKNING AF SIG SELV**
+* **Opgave:** Linket kom ikke frem på forsiden. Årsagen lå gravet ned i mørket: hjemmesiden (src/app/page.tsx) har sin egen inline navigation og footer kopieret — den bruger ikke den delte Navigation-komponent. Tilføjelse af »Notesbogen« i hjemmesidens egen header og footer ved siden af Journal og Shop.
+* **Filer berørt:** src/app/page.tsx.
+* **Arkitektonisk konsekvens:** To kopier af samme navigation eksisterer nu igen i parallel. Ikke smukt, men sandt. Invarianter bevaret.
+---

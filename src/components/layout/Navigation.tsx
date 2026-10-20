@@ -8,6 +8,7 @@ export default function Navigation() {
   
   const isJournal = pathname?.startsWith('/journal');
   const isShop = pathname?.startsWith('/shop');
+  const isNotesbogen = pathname?.startsWith('/notesbogen');
   
   return (
     <nav className="sticky top-0 z-50 bg-[#FAF9F6]/95 backdrop-blur-sm border-b border-[#E2E8F0]">
@@ -29,15 +30,25 @@ export default function Navigation() {
           >
             Journal
           </Link>
-          <Link 
-            href="/shop" 
+          <Link
+            href="/shop"
             className={`transition-colors ${
-              isShop 
-                ? 'text-[#2D3748] font-medium' 
+              isShop
+                ? 'text-[#2D3748] font-medium'
                 : 'text-[#718096] hover:text-[#2D3748]'
             }`}
           >
             Shop
+          </Link>
+          <Link
+            href="/notesbogen"
+            className={`transition-colors ${
+              isNotesbogen
+                ? 'text-[#2D3748] font-medium'
+                : 'text-[#718096] hover:text-[#2D3748]'
+            }`}
+          >
+            Notesbogen
           </Link>
         </div>
       </div>
