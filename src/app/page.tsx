@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { query } from '@/lib/db';
 import { getCountryCompliance } from '@/lib/compliance';
+import Navigation from '@/components/layout/Navigation';
+import Footer from '@/components/layout/Footer';
 
 // Types
 interface Article {
@@ -86,36 +88,10 @@ export default async function LandingPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-sans">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FAF9F6]/80 backdrop-blur-md border-b border-[#E2E8F0]/50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-[#2D3748] font-medium tracking-tight">
-            weeds.dk
-          </Link>
-          <div className="flex items-center gap-8">
-            <Link 
-              href="/journal" 
-              className="text-sm text-[#718096] hover:text-[#2D3748] transition-colors"
-            >
-              Journal
-            </Link>
-            <Link
-              href="/shop"
-              className="text-sm text-[#718096] hover:text-[#2D3748] transition-colors"
-            >
-              Shop
-            </Link>
-            <Link
-              href="/notesbogen"
-              className="text-sm text-[#718096] hover:text-[#2D3748] transition-colors"
-            >
-              Notesbogen
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[#FAF9F6] font-sans flex flex-col">
+      <Navigation />
 
+      <main className="flex-1">
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -305,26 +281,9 @@ export default async function LandingPage() {
           </Link>
         </div>
       </section>
+      </main>
 
-      {/* Simple Footer */}
-      <footer className="py-8 px-6 border-t border-[#E2E8F0]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[#718096]">
-            © 2024 weeds.dk — Nordic Botanical Cooperative
-          </p>
-          <div className="flex items-center gap-6">
-            <Link href="/journal" className="text-xs text-[#718096] hover:text-[#2D3748] transition-colors">
-              Journal
-            </Link>
-            <Link href="/shop" className="text-xs text-[#718096] hover:text-[#2D3748] transition-colors">
-              Shop
-            </Link>
-            <Link href="/notesbogen" className="text-xs text-[#718096] hover:text-[#2D3748] transition-colors">
-              Notesbogen
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

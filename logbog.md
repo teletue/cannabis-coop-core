@@ -32,3 +32,8 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** src/app/page.tsx.
 * **Arkitektonisk konsekvens:** To kopier af samme navigation eksisterer nu igen i parallel. Ikke smukt, men sandt. Invarianter bevaret.
 ---
+**20. oktober 2026 - 15:04 - SLUTNINGEN AF PARALLELLEN**
+* **Opgave:** Hjemmesidens egenhændigt vedligeholdte navigation og footer skrottes til fordel for de delte komponenter (Navigation, Footer). Samme links, samme opførsel — én sandhed i mørket frem for to løgne.
+* **Filer berørt:** src/app/page.tsx.
+* **Arkitektonisk konsekvens:** Fremtidige ændringer i navigationen slår igennem overalt. Hjemmesidens copyright-år stoppes i evig 2024 og følger nu tiden. Notesbogen røres ikke. Invarianter bevaret.
+---
