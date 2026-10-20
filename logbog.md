@@ -37,3 +37,8 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** src/app/page.tsx.
 * **Arkitektonisk konsekvens:** Fremtidige ændringer i navigationen slår igennem overalt. Hjemmesidens copyright-år stoppes i evig 2024 og følger nu tiden. Notesbogen røres ikke. Invarianter bevaret.
 ---
+**20. oktober 2026 - 15:18 - VEJEN HJEM**
+* **Opgave:** Tilføjelse af en diskret brødkrumme i gråt på notesbogen — »weeds.dk // notesbogen« — så den forvildede læser kan finde tilbage til hovedsitet uden at forstyrre mørket.
+* **Filer berørt:** public/notesbogen/index.html.
+* **Arkitektonisk konsekvens:** Ren HTML, ingen framework, samme monokrome æstetik (grå skala fra sidens egen palet, tracking-widest, uppercase). Én <a> og ét mellemrum af skygge. Invarianter bevaret.
+---
