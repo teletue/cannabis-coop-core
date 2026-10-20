@@ -16,7 +16,7 @@ export default function Privatlivspolitik() {
   return (
     <article className="max-w-3xl mx-auto px-6 py-16">
       <h1 className="text-3xl font-light text-[#2D3748] mb-2">Privatlivspolitik</h1>
-      <p className="text-sm text-[#718096] mb-10">Senest opdateret: 16. september 2026</p>
+      <p className="text-sm text-[#718096] mb-10">Senest opdateret: 20. oktober 2026</p>
 
       <div className="space-y-10 text-[#4A5568] leading-relaxed text-sm">
         <section>
@@ -47,8 +47,9 @@ export default function Privatlivspolitik() {
               (QuickPay og Mollie). Vi modtager og opbevarer ikke dine kortoplysninger.
             </li>
             <li>
-              <strong>Tekniske oplysninger:</strong> IP-adresse, browsertype, enhedstype og
-              sider du besøger, når du har givet samtykke til statistikcookies.
+              <strong>Tekniske oplysninger:</strong> sider du besøger samt klik på udvalgte
+              elementer, registreret som anonymiseret førstepartsstatistik uden brug af
+              cookies.
             </li>
             <li>
               <strong>Kampagne- og henvisningsoplysninger:</strong> UTM-parametre og
@@ -74,9 +75,9 @@ export default function Privatlivspolitik() {
               bogføringsloven, jf. GDPR art. 6, stk. 1, litra c.
             </li>
             <li>
-              <strong>Statistik og forbedring af hjemmesiden (Google Analytics)</strong> — dit
-              samtykke, jf. GDPR art. 6, stk. 1, litra a. Samtykke gives via cookiebanneret
-              og kan til enhver tid trækkes tilbage.
+              <strong>Statistik og forbedring af hjemmesiden</strong> — anonymiseret
+              førstepartsstatistik uden brug af cookies og uden videregivelse til tredjepart,
+              jf. GDPR art. 6, stk. 1, litra f (berettiget interesse).
             </li>
             <li>
               <strong>Måling af markedsføring og henvisninger (attribution)</strong> — dit
@@ -93,8 +94,9 @@ export default function Privatlivspolitik() {
         <section>
           <h2 className="text-lg font-medium text-[#2D3748] mb-3">4. Cookies</h2>
           <p>
-            Når du besøger weeds.dk første gang, vises et samtykkebanner. Statistik- og
-            marketingcookies aktiveres først, når du har klikket »Accept«. Du kan altid
+            Når du besøger weeds.dk første gang, vises et samtykkebanner.
+            Markedsføringscookies (attribution) aktiveres først, når du har klikket
+            »Accept«. Du kan altid
             tilbagetrække dit samtykke ved at slette cookies fra weeds.dk i din browser og
             dernæst klikke »Afvis« i banneret.
           </p>
@@ -118,11 +120,6 @@ export default function Privatlivspolitik() {
                 <td className="py-2">30 dage</td>
               </tr>
               <tr className="border-b border-[#E2E8F0]">
-                <td className="py-2 pr-4">_ga, _ga_WEY03MZ34B</td>
-                <td className="py-2 pr-4">Statistik — Google Analytics 4 (kræver samtykke)</td>
-                <td className="py-2">24 måneder</td>
-              </tr>
-              <tr className="border-b border-[#E2E8F0]">
                 <td className="py-2 pr-4">weeds_ref_id, weeds_session_id, attr_*</td>
                 <td className="py-2 pr-4">Attribution — måling af kampagner (kræver samtykke)</td>
                 <td className="py-2">30 dage</td>
@@ -132,13 +129,8 @@ export default function Privatlivspolitik() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-[#2D3748] mb-3">5. Modtagere og overførsel til tredjelande</h2>
+          <h2 className="text-lg font-medium text-[#2D3748] mb-3">5. Modtagere af dine oplysninger</h2>
           <ul className="list-disc pl-5 space-y-1">
-            <li>
-              <strong>Google LLC (Google Analytics), USA:</strong> statistikoplysninger
-              overføres til USA på grundlag af EU-U.S. Data Privacy Framework, suppleret med
-              EU-Kommissionens standardkontraktbestemmelser (SCC).
-            </li>
             <li>
               <strong>Betalingsudbydere (QuickPay, Mollie):</strong> databehandlere i EU/EØS,
               der gennemfører betalingstransaktioner.
@@ -161,7 +153,7 @@ export default function Privatlivspolitik() {
               Regnskabsoplysninger opbevares i 5 år efter regnskabsårets udløb, jf.
               bogføringsloven.
             </li>
-            <li>Analyticsdata i Google Analytics opbevares i op til 14 måneder.</li>
+            <li>Førstepartsstatistik opbevares i anonymiseret form uden tidsfrist.</li>
             <li>Attributiondata opbevares i op til 30 dage.</li>
             <li>
               Medlemsoplysninger opbevares, så længe dit medlemskab er aktivt, og derefter

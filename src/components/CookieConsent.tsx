@@ -2,10 +2,7 @@
 
 import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { GoogleAnalytics } from '@next/third-parties/google';
 import { acceptMarketingConsent, rejectMarketingConsent } from '@/lib/consent';
-
-const GA_MEASUREMENT_ID = 'G-WEY03MZ34B';
 
 // Cookie name matching lib/consent.ts and proxy.ts
 const CONSENT_COOKIE = 'weeds_consent_marketing';
@@ -27,11 +24,11 @@ function readConsentCookie(): ConsentState {
 }
 
 /**
- * Cookie consent banner + gated Google Analytics.
+ * Cookie consent banner.
  *
- * - No consent decision yet → banner is shown, GA is NOT loaded
- * - Accepted               → banner hidden, GA tag loads
- * - Declined               → banner hidden, GA stays off (tracked cookies cleared server-side)
+ * - No consent decision yet → banner is shown, attribution tracking stays off
+ * - Accepted               → banner hidden, attribution cookies may be set
+ * - Declined               → banner hidden, tracking cookies cleared server-side
  *
  * State is read after mount to avoid hydration mismatch.
  */
@@ -61,15 +58,13 @@ export default function CookieConsent() {
 
   return (
     <>
-      {state === 'accepted' && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
-
       {state === 'undecided' && (
         <div className="fixed bottom-0 inset-x-0 z-50 border-t border-[#E2E8F0] bg-[#FAF9F6]/95 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-sm font-light text-[#2D3748] max-w-2xl">
-              We use cookies for statistics (Google Analytics) and attribution to
-              understand how weeds.dk is used. Accept to help us improve, or
-              decline to continue with necessary cookies only.{' '}
+              We use cookies for attribution to understand how weeds.dk is used.
+              Accept to help us improve, or decline to continue with necessary
+              cookies only.{' '}
               <Link href="/privatlivspolitik" className="underline underline-offset-2 hover:text-[#1A202C]">
                 Læs vores privatlivspolitik
               </Link>
