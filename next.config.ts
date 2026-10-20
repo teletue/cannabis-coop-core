@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Serve the static noir notebook at the clean /notesbogen URL
+  async rewrites() {
+    return [
+      { source: "/notesbogen", destination: "/notesbogen/index.html" },
+    ];
+  },
   images: {
     remotePatterns: [
       {

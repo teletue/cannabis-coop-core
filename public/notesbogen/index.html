@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="da" class="bg-[#0a0a0a] text-gray-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notesbogen // 03:14</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        body {
+            font-family: 'Courier Prime', monospace;
+            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+        }
+        ::selection { background: #333; color: #fff; }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden pt-12 pb-6 flex flex-col">
+
+    <main class="max-w-4xl w-full mx-auto px-6 flex-1 flex flex-col">
+        <header class="mb-12 border-b border-gray-800 pb-4">
+            <h1 class="text-sm tracking-widest text-gray-600 uppercase">Protokol_Vesterbro</h1>
+        </header>
+
+        <div class="grid grid-cols-[1fr_14rem] gap-12 flex-1">
+            <!-- Venstre spalte: Strømmen, skrivefeltet og hitcount nederst above the fold -->
+            <div class="flex flex-col">
+                <div id="stream" class="space-y-16">
+                    <!-- Den første indførsel (Uændret fiktion) -->
+                    <article class="opacity-90">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-xs text-gray-600 uppercase tracking-widest">Detektiven</span>
+                            <span class="text-xs text-gray-700">19. oktober 2026 - 21:46</span>
+                        </div>
+                        <p class="leading-relaxed text-gray-400">
+                            Klokken var 03.14. Manager-agenten påstod, den havde fikset databasen. Jeg vidste, den løj. Den havde bare lagt et asynkront plaster over blødningen og tændt en smøg. Maskinen gør præcis, hvad du beder den om. Især når du er for fuld af din egen kode til at formulere grænserne.
+                        </p>
+                    </article>
+                </div>
+
+                <form id="note-form" class="mt-16 border-t border-gray-800 pt-6 relative">
+                    <!-- Honeypot fælden - usynlig for maskiner -->
+                    <div class="absolute left-[-9999px] top-[-9999px]" aria-hidden="true">
+                        <input type="text" name="bot_trap" id="bot_trap" tabindex="-1">
+                    </div>
+
+                    <textarea
+                        id="note-input"
+                        class="w-full bg-transparent border-none focus:ring-0 text-gray-400 placeholder-gray-800 resize-none h-24 text-sm focus:outline-none mb-4"
+                        placeholder="Efterlad en tanke i mørket..."
+                        required
+                    ></textarea>
+
+                    <div class="flex items-center justify-between border-t border-gray-900 pt-4">
+                        <input
+                            type="text"
+                            id="alias-input"
+                            class="bg-transparent border-none focus:ring-0 text-gray-600 placeholder-gray-800 text-xs tracking-widest uppercase focus:outline-none w-1/2"
+                            placeholder="Dit Alias (Valgfrit)"
+                        >
+                        <button type="submit" class="text-xs tracking-widest uppercase text-gray-600 hover:text-gray-300 transition-colors duration-300">
+                            [ Svar ]
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Diskret hitcount under svarknappen, skubbet helt ned til bunden (above the fold) -->
+                <div class="mt-auto pt-6 flex justify-end">
+                    <span id="hit-count" class="text-[10px] tracking-widest uppercase text-gray-800 select-none">
+                        Spor // 0001
+                    </span>
+                </div>
+            </div>
+
+            <!-- Højre spalte: Det flydende sagsregister ved siden af strømmen -->
+            <aside class="sticky top-12 self-start border-l border-gray-900 pl-6">
+                <h2 class="text-xs tracking-widest text-gray-700 uppercase mb-4">[ Aktive Aliaser ]</h2>
+                <div id="dossier" class="flex flex-col gap-y-2 text-sm text-gray-600">
+                    <span class="text-gray-600">Detektiven</span>
+                    <!-- Nye aliaser dukker automatisk op her -->
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+        // Tæller hvert fodtrin i mørket (diskret hitcount i localStorage)
+        (function opdaterHitCount() {
+            const noegle = 'protokol_vesterbro_hits';
+            const tidligere = parseInt(localStorage.getItem(noegle) || '0', 10);
+            const aktuel = tidligere + 1;
+            localStorage.setItem(noegle, String(aktuel));
+            const el = document.getElementById('hit-count');
+            if (el) {
+                el.textContent = `Spor // ${String(aktuel).padStart(4, '0')}`;
+            }
+        })();
+
+        // Holder styr på, hvem der allerede står på tavlen (case-insensitivt tjek, så ingen gemmer sig bag store bogstaver)
+        const knownAliases = new Set(['detektiven']);
+
+        // Formatér tiden som et koldt stempel i en politirapport: "20. oktober 2026 - 08:10"
+        function stempelTid(dato = new Date()) {
+            const maaneder = [
+                'januar', 'februar', 'marts', 'april', 'maj', 'juni',
+                'juli', 'august', 'september', 'oktober', 'november', 'december'
+            ];
+            const dag = dato.getDate();
+            const maaned = maaneder[dato.getMonth()];
+            const aar = dato.getFullYear();
+            const timer = String(dato.getHours()).padStart(2, '0');
+            const minutter = String(dato.getMinutes()).padStart(2, '0');
+            return `${dag}. ${maaned} ${aar} - ${timer}:${minutter}`;
+        }
+
+        // Registrerer nye navne i sagsregisteret
+        function registrerAlias(alias) {
+            const noegle = alias.toLowerCase();
+            if (alias !== 'Ukendt Skygge' && !knownAliases.has(noegle)) {
+                knownAliases.add(noegle);
+                const dossier = document.getElementById('dossier');
+                const newAliasSpan = document.createElement('span');
+                newAliasSpan.className = 'text-gray-600 transition-opacity duration-1000 animate-pulse';
+                newAliasSpan.textContent = alias;
+                dossier.appendChild(newAliasSpan);
+            }
+        }
+
+        // Skriver til strømmen uden at lade fremmed kode inficere DOM'en.
+        // Modtager et rent { alias, tid, tekst }-objekt klar til fremtidig localStorage-persistens.
+        function tilfoejIndfoersel({ alias, tid, tekst }) {
+            registrerAlias(alias);
+
+            const stream = document.getElementById('stream');
+            const article = document.createElement('article');
+            article.className = 'opacity-90 mt-16';
+
+            const header = document.createElement('div');
+            header.className = 'flex items-center gap-3 mb-3';
+
+            const aliasSpan = document.createElement('span');
+            aliasSpan.className = 'text-xs text-gray-600 uppercase tracking-widest';
+            aliasSpan.textContent = alias;
+
+            const tidSpan = document.createElement('span');
+            tidSpan.className = 'text-xs text-gray-700';
+            tidSpan.textContent = tid;
+
+            header.appendChild(aliasSpan);
+            header.appendChild(tidSpan);
+
+            const body = document.createElement('p');
+            body.className = 'leading-relaxed text-gray-400 whitespace-pre-line';
+            body.textContent = tekst;
+
+            article.appendChild(header);
+            article.appendChild(body);
+            stream.appendChild(article);
+        }
+
+        document.getElementById('note-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Honeypot tjek
+            const honeypot = document.getElementById('bot_trap').value;
+            if (honeypot) {
+                console.log("Maskinel støj afvist.");
+                this.reset();
+                return;
+            }
+
+            const raaTekst = document.getElementById('note-input').value.trim();
+            if (!raaTekst) return;
+
+            const aliasRaw = document.getElementById('alias-input').value.trim();
+            const alias = aliasRaw ? aliasRaw : 'Ukendt Skygge';
+
+            const nyNote = {
+                alias,
+                tid: stempelTid(),
+                tekst: raaTekst
+            };
+
+            // TODO (Hukommelse): nyNote ({ alias, tid, tekst }) er klar til localStorage-serialisering,
+            // så både indførsler og sagsregisteret (#dossier) kan genskabes ved reload.
+            tilfoejIndfoersel(nyNote);
+
+            this.reset();
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+    </script>
+
+    <script>
+        // Kontroltårnet på hovedsitet vil vide, at en skygge gik forbi.
+        // Samme anonyme tælling som de øvrige sider: ét spor pr. sidevisning,
+        // og ét ekstra når sessionen står op af sin seng (10 minutters tavshed).
+        // Ingen navne, ingen IP — kun hældningen af et fodtrin i sneen.
+        (function () {
+            var dnt = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+            if (dnt === '1' || dnt === 'yes') return;
+
+            // Normalisér til /notesbogen uanset trailingslashes og index-filnavne
+            var sti = window.location.pathname
+                .replace(/\/index\.html$/, '')
+                .replace(/\/+$/, '');
+            if (!sti) sti = '/';
+
+            fetch('/api/page-view', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: sti })
+            }).catch(function () {});
+
+            var harSession = document.cookie.split(';').some(function (c) {
+                return c.trim().indexOf('wsc_active=') === 0;
+            });
+            var secure = window.location.protocol === 'https:' ? '; secure' : '';
+            document.cookie = 'wsc_active=1; max-age=600; path=/; samesite=lax' + secure;
+
+            if (!harSession) {
+                fetch('/api/session-count', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: sti })
+                }).catch(function () {});
+            }
+        })();
+    </script>
+</body>
+</html>

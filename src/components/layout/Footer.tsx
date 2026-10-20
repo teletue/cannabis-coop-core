@@ -35,6 +35,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/notesbogen" className="text-[#718096] hover:text-[#2D3748] transition-colors">
+                  Notesbogen
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard" className="text-[#718096] hover:text-[#2D3748] transition-colors">
                   Member Dashboard
                 </Link>
