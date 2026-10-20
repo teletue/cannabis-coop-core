@@ -23,6 +23,27 @@ async function getDrafts(): Promise<DraftArticle[]> {
   }
 }
 
+interface PageStat {
+  page_path: string;
+  session_count: string;
+  view_count: string;
+}
+
+async function getPageStats(): Promise<PageStat[]> {
+  try {
+    const res = await query(
+      `SELECT page_path, session_count, view_count
+       FROM page_session_counts
+       ORDER BY view_count DESC
+       LIMIT 50`
+    );
+    return res.rows as PageStat[];
+  } catch (err) {
+    console.error('[AdminDashboard] Failed to fetch page stats:', err);
+    return [];
+  }
+}
+
 async function getPipelineStats() {
   try {
     const inbox = await query(
@@ -38,7 +59,11 @@ async function getPipelineStats() {
 }
 
 export default async function AdminDashboardPage() {
-  const [drafts, stats] = await Promise.all([getDrafts(), getPipelineStats()]);
+  const [drafts, stats, pageStats] = await Promise.all([
+    getDrafts(),
+    getPipelineStats(),
+    getPageStats(),
+  ]);
 
   const totalInbox = stats.inbox.reduce((s, r) => s + parseInt(r.count), 0);
   const pending = stats.drafts.find(r => r.review_status === 'pending_review')?.count ?? 0;
@@ -93,6 +118,44 @@ export default async function AdminDashboardPage() {
               <p className="text-[11px] text-stone-400">{stat.sub}</p>
             </div>
           ))}
+        </div>
+
+        {/* Page statistics */}
+        <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-stone-800" style={{ fontFamily: 'Georgia, serif' }}>
+              Sidestatistik
+            </h2>
+            <p className="text-xs text-stone-400">
+              Anonyme tællere · Sessioner ved sessionsstart · Sidevisninger ved hvert besøg
+            </p>
+          </div>
+          {pageStats.length === 0 ? (
+            <p className="text-sm text-stone-400">Ingen besøg registreret endnu.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 text-left">
+                  <th className="py-2 pr-4 font-semibold text-stone-600">Side</th>
+                  <th className="py-2 pr-4 font-semibold text-stone-600 text-right">Sessioner</th>
+                  <th className="py-2 font-semibold text-stone-600 text-right">Sidevisninger</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageStats.map((row) => (
+                  <tr key={row.page_path} className="border-b border-stone-100 last:border-0">
+                    <td className="py-2 pr-4 text-stone-700 font-mono text-xs">{row.page_path}</td>
+                    <td className="py-2 pr-4 text-right tabular-nums text-stone-600">
+                      {Number(row.session_count).toLocaleString('da-DK')}
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-stone-800 font-medium">
+                      {Number(row.view_count).toLocaleString('da-DK')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Article table */}

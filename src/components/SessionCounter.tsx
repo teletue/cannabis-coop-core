@@ -64,6 +64,13 @@ export default function SessionCounter() {
       return;
     }
 
+    // Every page view is counted, regardless of session state
+    fetch('/api/page-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: pathname }),
+    }).catch(() => {});
+
     const isSessionStart = !hasActiveSession();
     refreshSessionCookie();
 
