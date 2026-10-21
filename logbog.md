@@ -52,3 +52,8 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** migration_v2.5.sql (ny: page_daily_counts), src/app/api/page-view/route.ts, src/app/api/session-count/route.ts, src/app/api/admin/page-stats/export/route.ts (ny), src/components/PageStats.tsx.
 * **Arkitektonisk konsekvens:** Hvert fodtrin tælles nu to steder i samme transaktion: totalen og dagen (UTC). Stadig ingen personoplysninger — kun sti, dato, tal. Eksporten står bag samme admin-cookie som resten af kontoret. Notesbogen røres ikke. Invarianter bevaret.
 ---
+**20. oktober 2026 - 16:04 - KØBENHAVNERTID**
+* **Opgave:** Dagsgrænsen i den daglige statistik flyttes fra UTC til Europe/Copenhagen, så et fodtrin kl. 00:30 dansk tid lander på den rigtige dato — også når sommertiden snyder.
+* **Filer berørt:** src/app/api/page-view/route.ts, src/app/api/session-count/route.ts.
+* **Arkitektonisk konsekvens:** CURRENT_DATE erstattes af (NOW() AT TIME ZONE 'Europe/Copenhagen')::date i de to INSERT-sætninger. Ingen skemaændring, ingen datamigrering — eksisterende rækker rører vi ikke. Notesbogen røres ikke. Invarianter bevaret.
+---
