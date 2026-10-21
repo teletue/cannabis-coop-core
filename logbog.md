@@ -42,3 +42,8 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** public/notesbogen/index.html.
 * **Arkitektonisk konsekvens:** Ren HTML, ingen framework, samme monokrome æstetik (grå skala fra sidens egen palet, tracking-widest, uppercase). Én <a> og ét mellemrum af skygge. Invarianter bevaret.
 ---
+**20. oktober 2026 - 15:31 - TÆLLERNE DER GEMTE SIG**
+* **Opgave:** Sidestatistikken (sessioner + sidevisninger) lå på /admin/dashboard, men ejermanden lander på /admin — en anden side, der aldrig har hørt om den. Udtræk af tabellen til en delt komponent (PageStats) og visning på begge admin-sider, så ingen skal lede.
+* **Filer berørt:** src/components/PageStats.tsx (ny), src/app/admin/page.tsx, src/app/admin/dashboard/page.tsx.
+* **Arkitektonisk konsekvens:** Én tabel, ét sæt SQL, to steder at se den. Ingen ændring i tælling eller API. Notesbogen røres ikke. Invarianter bevaret.
+---

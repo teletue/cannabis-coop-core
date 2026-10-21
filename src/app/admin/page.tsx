@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { query } from '@/lib/db';
+import PageStats from '@/components/PageStats';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +63,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Nav cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           {NAV.map(item => (
             <Link
               key={item.href}
@@ -75,6 +76,9 @@ export default async function AdminPage() {
             </Link>
           ))}
         </div>
+
+        {/* Page statistics */}
+        <PageStats />
       </main>
     </div>
   );
