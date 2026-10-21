@@ -38,13 +38,22 @@ export default async function PageStats({ className = '' }: { className?: string
 
   return (
     <div className={`bg-white border border-stone-200 rounded-xl p-6 shadow-sm ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-stone-800" style={{ fontFamily: 'Georgia, serif' }}>
-          Sidestatistik
-        </h2>
-        <p className="text-xs text-stone-400">
-          Anonyme tællere · Sessioner ved sessionsstart · Sidevisninger ved hvert besøg
-        </p>
+      <div className="flex items-center justify-between mb-4 gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-stone-800" style={{ fontFamily: 'Georgia, serif' }}>
+            Sidestatistik
+          </h2>
+          <p className="text-xs text-stone-400">
+            Anonyme tællere · Sessioner ved sessionsstart · Sidevisninger ved hvert besøg
+          </p>
+        </div>
+        <a
+          href="/api/admin/page-stats/export"
+          download
+          className="shrink-0 text-xs px-3 py-1.5 border border-stone-300 text-stone-700 rounded-lg hover:bg-stone-50 hover:border-stone-400 transition font-medium"
+        >
+          Eksportér CSV (pr. dag)
+        </a>
       </div>
       {pageStats.length === 0 ? (
         <p className="text-sm text-stone-400">Ingen besøg registreret endnu.</p>

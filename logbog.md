@@ -47,3 +47,8 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** src/components/PageStats.tsx (ny), src/app/admin/page.tsx, src/app/admin/dashboard/page.tsx.
 * **Arkitektonisk konsekvens:** Én tabel, ét sæt SQL, to steder at se den. Ingen ændring i tælling eller API. Notesbogen røres ikke. Invarianter bevaret.
 ---
+**20. oktober 2026 - 15:49 - DAGBOGEN BAG TÆLLERNE**
+* **Opgave:** Totaler er ikke historie. Tilføjelse af daglig opdeling (dato × side) af sessioner og sidevisninger, samt CSV-eksport af den fulde dagbog fra admin. Admin-tabellen viser fortsat kun totaler — detaljerne hentes i eksporten.
+* **Filer berørt:** migration_v2.5.sql (ny: page_daily_counts), src/app/api/page-view/route.ts, src/app/api/session-count/route.ts, src/app/api/admin/page-stats/export/route.ts (ny), src/components/PageStats.tsx.
+* **Arkitektonisk konsekvens:** Hvert fodtrin tælles nu to steder i samme transaktion: totalen og dagen (UTC). Stadig ingen personoplysninger — kun sti, dato, tal. Eksporten står bag samme admin-cookie som resten af kontoret. Notesbogen røres ikke. Invarianter bevaret.
+---

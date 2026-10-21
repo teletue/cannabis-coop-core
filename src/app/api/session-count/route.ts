@@ -55,15 +55,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing or invalid path parameter' }, { status: 400 });
     }
 
-    const res = await query(
-      `INSERT INTO page_session_counts (page_path, session_count)
-       VALUES ($1, 1)
-       ON CONFLICT (page_path)
-       DO UPDATE SET session_count = page_session_counts.session_count + 1,
-                     updated_at = NOW()
-       RETURNING session_count`,
-      [path]
-    );
+    // Running total and today's row are updated together (daily row is UTC-based)
+    const [res] = await Promise.all([
+      query(
+        `INSERT INTO page_session_counts (page_path, session_count)
+         VALUES ($1, 1)
+         ON CONFLICT (page_path)
+         DO UPDATE SET session_count = page_session_counts.session_count + 1,
+                       updated_at = NOW()
+         RETURNING session_count`,
+        [path]
+      ),
+      query(
+        `INSERT INTO page_daily_counts (day, page_path, session_count)
+         VALUES (CURRENT_DATE, $1, 1)
+         ON CONFLICT (day, page_path)
+         DO UPDATE SET session_count = page_daily_counts.session_count + 1`,
+        [path]
+      ),
+    ]);
 
     return NextResponse.json({ path, count: Number(res.rows[0].session_count) });
   } catch (error) {
