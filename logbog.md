@@ -63,3 +63,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Intet publiceres automatisk — kladderne går gennem den eksisterende redaktionelle gang i /admin/drafts, og publicering kopierer dem til journal_articles med tags intakt. Hubben læser kun publicerede artikler via tag-match; ingen skemaændring. Migrationen er idempotent (ON CONFLICT (slug) DO NOTHING). Ingen ændring i tælling. Notesbogen røres ikke. Invarianter bevaret.
 ---
 
+**9. november 2026 - 18:05 - FJERNELSE AF NOTESBOGEN-LINKS OG DATA**
+* **Opgave:** Fjernelse af det offentlige link til /notesbogen fra websitets navigation og footer, samt sletning af registrerede tæller- og konverteringsdata for /notesbogen i databasen.
+* **Filer berørt:** logbog.md (denne fil), src/components/layout/Navigation.tsx, src/components/layout/Footer.tsx, migration_v2.7_remove_notesbogen_data.sql (ny).
+* **Arkitektonisk konsekvens:** Dørskiltene til notesbogen (topnavigation og footer) tages ned. Notesbogens fysiske eksistens og lov.md overholdes (filen i public/notesbogen røres ikke), men den er ikke længere linket fra websitet. Historiske tællerdata for /notesbogen i page_session_counts, page_daily_counts og conversions fjernes fra databasen. Invarianter bevaret.
+---
+
