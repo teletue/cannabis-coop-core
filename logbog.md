@@ -69,3 +69,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Dørskiltene til notesbogen (topnavigation og footer) tages ned. Notesbogens fysiske eksistens og lov.md overholdes (filen i public/notesbogen røres ikke), men den er ikke længere linket fra websitet. Historiske tællerdata for /notesbogen i page_session_counts, page_daily_counts og conversions fjernes fra databasen. Invarianter bevaret.
 ---
 
+**9. november 2026 - 18:12 - BILLEDER TIL PRODUKTER OG ARTIKLER**
+* **Opgave:** Tilføjelse af billeder til alle produkter i kataloget og alle artikler i journalen, der hidtil manglede hero-billeder. Skræddersyede nordiske minimalistiske billeder genereret til produkterne og artiklerne, gemt i public/images/ og opdateret i databasen.
+* **Filer berørt:** logbog.md (denne fil), public/images/products/*, public/images/articles/*, migration_v2.8_assign_images.sql (ny).
+* **Arkitektonisk konsekvens:** Billeder serveres statisk fra public/images/ med fallback til Unsplash for øvrige forskningsartikler. Produkter opdateres i products-tabellen med deres respektive image_url, og journal_articles opdateres med hero_image_url. Invarianter bevaret.
+---
+
