@@ -7,6 +7,7 @@ export default function Navigation() {
   const pathname = usePathname();
   
   const isJournal = pathname?.startsWith('/journal');
+  const isGuides = pathname?.startsWith('/guides');
   const isShop = pathname?.startsWith('/shop');
   const isNotesbogen = pathname?.startsWith('/notesbogen');
   
@@ -29,6 +30,16 @@ export default function Navigation() {
             }`}
           >
             Journal
+          </Link>
+          <Link
+            href="/guides"
+            className={`transition-colors ${
+              isGuides
+                ? 'text-[#2D3748] font-medium'
+                : 'text-[#718096] hover:text-[#2D3748]'
+            }`}
+          >
+            Guides
           </Link>
           <Link
             href="/shop"

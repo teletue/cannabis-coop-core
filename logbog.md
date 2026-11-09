@@ -57,3 +57,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** src/app/api/page-view/route.ts, src/app/api/session-count/route.ts.
 * **Arkitektonisk konsekvens:** CURRENT_DATE erstattes af (NOW() AT TIME ZONE 'Europe/Copenhagen')::date i de to INSERT-sætninger. Ingen skemaændring, ingen datamigrering — eksisterende rækker rører vi ikke. Notesbogen røres ikke. Invarianter bevaret.
 ---
+**9. november 2026 - 12:49 - GUIDERNE: BRUG OG INDTAG**
+* **Opgave:** Ny sektion /guides med to underafsnit, »Brug« og »Indtag«, inspireret af emnelisten i ejerens Google Sheet (cannigma.com/how-to). Indholdet kopieres IKKE — der skrives seks originale danske guides (opbevaring, decarboxylering, start lavt og gå langsomt, ordbog, vaporizer, røgfri alternativer) uden medicinske anprisninger og tilpasset dansk lovgivning. Kildesider angives som citations. Medicinske emner (dosering, bivirkninger, US-medicinkort) og ryge-/bong-/joint-guides er fravalgt af compliance-hensyn.
+* **Filer berørt:** migration_v2.6.sql (ny: seks kladder i draft_articles med review_status 'pending_review', tags 'guide' + 'guide-brug'/'guide-indtag'), src/app/(media)/guides/page.tsx (ny hub), src/components/layout/Navigation.tsx og src/components/layout/Footer.tsx (link »Guides«).
+* **Arkitektonisk konsekvens:** Intet publiceres automatisk — kladderne går gennem den eksisterende redaktionelle gang i /admin/drafts, og publicering kopierer dem til journal_articles med tags intakt. Hubben læser kun publicerede artikler via tag-match; ingen skemaændring. Migrationen er idempotent (ON CONFLICT (slug) DO NOTHING). Ingen ændring i tælling. Notesbogen røres ikke. Invarianter bevaret.
+---
+
