@@ -60,8 +60,9 @@ export async function POST(request: Request) {
           `INSERT INTO raw_content_inbox
              (source, source_id, source_url, title, abstract, relevancy_score, scout_output, scored_at, status)
            VALUES ('google_grounding', $1, $2, $3, $4, $5, $6, NOW(), $7)
-           ON CONFLICT (source, source_id) DO NOTHING
+           ON CONFLICT DO NOTHING
            RETURNING id`,
+
           [
             g.url,
             g.url,
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
         `INSERT INTO raw_content_inbox
            (source, source_id, source_url, title, abstract, published_at, authors, raw_payload, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
-         ON CONFLICT (source, source_id) DO NOTHING
+         ON CONFLICT DO NOTHING
          RETURNING id`,
         [
           signal.source,

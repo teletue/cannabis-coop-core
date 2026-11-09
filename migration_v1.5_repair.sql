@@ -10,24 +10,24 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 1. OPRET RAW_CONTENT_INBOX (hvis den ikke eksisterer)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS raw_content_inbox (
-    id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    source     VARCHAR(50) NOT NULL,
-    title      TEXT NOT NULL,
-    status     VARCHAR(30) NOT NULL DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4()
 );
 
--- Tilføj ALLE manglende kolonner (idempotent)
+-- Tilføj ALLE kolonner idempotent (ADD COLUMN IF NOT EXISTS er sikker at køre gentagne gange)
 ALTER TABLE raw_content_inbox
+    ADD COLUMN IF NOT EXISTS source          VARCHAR(50),
     ADD COLUMN IF NOT EXISTS source_id       TEXT,
     ADD COLUMN IF NOT EXISTS source_url      TEXT,
+    ADD COLUMN IF NOT EXISTS title           TEXT,
     ADD COLUMN IF NOT EXISTS abstract        TEXT,
     ADD COLUMN IF NOT EXISTS published_at    TIMESTAMPTZ,
     ADD COLUMN IF NOT EXISTS authors         TEXT[],
     ADD COLUMN IF NOT EXISTS raw_payload     JSONB DEFAULT '{}'::jsonb,
     ADD COLUMN IF NOT EXISTS relevancy_score INTEGER,
     ADD COLUMN IF NOT EXISTS scout_output    JSONB,
-    ADD COLUMN IF NOT EXISTS scored_at       TIMESTAMPTZ;
+    ADD COLUMN IF NOT EXISTS scored_at       TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS status          VARCHAR(30) DEFAULT 'pending',
+    ADD COLUMN IF NOT EXISTS created_at      TIMESTAMPTZ DEFAULT NOW();
 
 -- ============================================================================
 -- 2. INDEXES PÅ RAW_CONTENT_INBOX
@@ -41,7 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_inbox_relevancy_score
 CREATE INDEX IF NOT EXISTS idx_inbox_created_at
     ON raw_content_inbox(created_at DESC);
 
--- Unique index til deduplicering (source + source_id)
+-- Unique index til deduplicering (source + source_id) - NØDVENDIG FOR ON CONFLICT
 CREATE UNIQUE INDEX IF NOT EXISTS idx_inbox_source_id_unique
     ON raw_content_inbox(source, source_id)
     WHERE source_id IS NOT NULL;
@@ -50,17 +50,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_inbox_source_id_unique
 -- 3. OPRET DRAFT_ARTICLES (hvis den ikke eksisterer)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS draft_articles (
-    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title         TEXT NOT NULL,
-    review_status VARCHAR(30) NOT NULL DEFAULT 'pending_review',
-    created_at    TIMESTAMPTZ DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ DEFAULT NOW()
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4()
 );
 
--- Tilføj ALLE manglende kolonner (idempotent)
+-- Tilføj ALLE kolonner idempotent
 ALTER TABLE draft_articles
     ADD COLUMN IF NOT EXISTS inbox_id        UUID REFERENCES raw_content_inbox(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS slug            TEXT UNIQUE,
+    ADD COLUMN IF NOT EXISTS title           TEXT,
     ADD COLUMN IF NOT EXISTS body            TEXT,
     ADD COLUMN IF NOT EXISTS excerpt         TEXT,
     ADD COLUMN IF NOT EXISTS author          TEXT DEFAULT 'Redaktionen',
@@ -69,11 +66,14 @@ ALTER TABLE draft_articles
     ADD COLUMN IF NOT EXISTS citations       JSONB DEFAULT '[]'::jsonb,
     ADD COLUMN IF NOT EXISTS hero_image_url  TEXT,
     ADD COLUMN IF NOT EXISTS image_prompt    TEXT,
+    ADD COLUMN IF NOT EXISTS review_status   VARCHAR(30) DEFAULT 'pending_review',
     ADD COLUMN IF NOT EXISTS reviewed_by     TEXT,
     ADD COLUMN IF NOT EXISTS reviewed_at     TIMESTAMPTZ,
     ADD COLUMN IF NOT EXISTS rejection_note  TEXT,
     ADD COLUMN IF NOT EXISTS pipeline_stage  VARCHAR(30) DEFAULT 'scout',
-    ADD COLUMN IF NOT EXISTS tags            TEXT[] DEFAULT '{}';
+    ADD COLUMN IF NOT EXISTS tags            TEXT[] DEFAULT '{}',
+    ADD COLUMN IF NOT EXISTS created_at      TIMESTAMPTZ DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at      TIMESTAMPTZ DEFAULT NOW();
 
 -- ============================================================================
 -- 4. INDEXES PÅ DRAFT_ARTICLES

@@ -34,9 +34,7 @@ function getModel() {
   if (!apiKey) throw new Error('[Scout] GOOGLE_API_KEY is not set');
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    // Enable Google Search Grounding
-    tools: [{ googleSearchRetrieval: {} }],
+    model: 'gemini-2.5-flash',
   });
 }
 
