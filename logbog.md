@@ -75,3 +75,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Billeder serveres statisk fra public/images/ med fallback til Unsplash for øvrige forskningsartikler. Produkter opdateres i products-tabellen med deres respektive image_url, og journal_articles opdateres med hero_image_url. Invarianter bevaret.
 ---
 
+**9. november 2026 - 18:18 - MEDIA HUB: KURATERET EKSTERNT CONTENT**
+* **Opgave:** Oprettelse af ny Media Hub-sektion på weeds.dk (/media) samt tilhørende redaktionel administrationsside (/admin/media). Giver mulighed for at indsætte links til eksternt indhold (YouTube, Instagram, Facebook, TikTok, podcasts og webartikler), automatisk hente metadata (oEmbed / OpenGraph) og vise videoer og indhold direkte i et moderne responsivt feed med filtre og redaktørnoter.
+* **Filer berørt:** logbog.md (denne fil), migration_v2.9_media_hub.sql (ny), src/app/api/admin/media/route.ts (ny), src/app/api/admin/media/preview/route.ts (ny), src/app/api/admin/media/[id]/route.ts (ny), src/app/admin/media/page.tsx (ny), src/app/admin/page.tsx, src/app/(media)/media/page.tsx (ny), src/components/layout/Navigation.tsx, src/components/layout/Footer.tsx.
+* **Arkitektonisk konsekvens:** Ny tabel media_items i PostgreSQL. Admin-adgang beskyttet af eksisterende ADMIN_SECRET-cookie guard. Offentlig læsning på /media sker med server-rendering (force-dynamic). Responsiv indlejring uden tredjeparts tracking-forurening. Invarianter bevaret.
+---
+

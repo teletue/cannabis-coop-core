@@ -18,6 +18,7 @@ async function getStats() {
 }
 
 const NAV = [
+  { href: '/admin/media',        label: 'Media Hub',          desc: 'Indsæt links og del fedt eksternt content', icon: '🎬' },
   { href: '/admin/articles',     label: 'Journal Articles',  desc: 'Rediger publiceret indhold direkte',       icon: '📰' },
   { href: '/admin/feltnoter',    label: 'Feltnoter',          desc: 'Original redaktionel kommentar',            icon: '✍️' },
   { href: '/admin/drafts',       label: 'Kladder',            desc: 'Pipeline-genererede artikler til review',  icon: '📝' },

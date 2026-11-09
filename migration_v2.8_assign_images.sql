@@ -30,3 +30,4 @@ UPDATE draft_articles SET hero_image_url = '/images/articles/saadan-bruger-du-en
 UPDATE draft_articles SET hero_image_url = '/images/articles/roegfri-maader-at-bruge-hamp.jpg' WHERE slug = 'roegfri-maader-at-bruge-hamp';
 
 SELECT 'Migration v2.8 completed — all products and articles assigned hero images' AS status;
+
