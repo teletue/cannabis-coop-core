@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       { source: "/notesbogen", destination: "/notesbogen/index.html" },
+      { source: "/redaktionen/:path*", destination: "/redaktoeren/:path*" },
+      { source: "/editor/:path*", destination: "/redaktoeren/:path*" },
     ];
   },
   images: {

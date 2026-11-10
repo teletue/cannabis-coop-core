@@ -9,6 +9,7 @@ export default function Navigation() {
   const isJournal = pathname?.startsWith('/journal');
   const isGuides = pathname?.startsWith('/guides');
   const isMedia = pathname?.startsWith('/media');
+  const isRedaktoeren = pathname?.startsWith('/redaktoeren') || pathname?.startsWith('/editor') || pathname?.startsWith('/redaktionen');
   const isShop = pathname?.startsWith('/shop');
   
   return (
@@ -50,6 +51,16 @@ export default function Navigation() {
             }`}
           >
             Media
+          </Link>
+          <Link
+            href="/redaktoeren"
+            className={`transition-colors ${
+              isRedaktoeren
+                ? 'text-[#2D3748] font-medium'
+                : 'text-[#718096] hover:text-[#2D3748]'
+            }`}
+          >
+            Redaktøren
           </Link>
           <Link
             href="/shop"

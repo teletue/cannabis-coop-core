@@ -81,3 +81,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Ny tabel media_items i PostgreSQL. Admin-adgang beskyttet af eksisterende ADMIN_SECRET-cookie guard. Offentlig læsning på /media sker med server-rendering (force-dynamic). Responsiv indlejring uden tredjeparts tracking-forurening. Invarianter bevaret.
 ---
 
+**10. november 2026 - 13:38 - REDAKTØRENS SIDE: PETER ØVIG KNUDSEN**
+* **Opgave:** Oprettelse af ny redaktionel sektion /redaktoeren med det personlige essay »Bio over danske cannabis-legender: Peter Øvig Knudsen« på URL'en /redaktoeren/peterovigknudsen. Indeholder fuld tekstgengivelse, typografisk opsætning i magasin-stil med Lora-typografi, forfatterbio og redaktionel kontekst.
+* **Filer berørt:** logbog.md (denne fil), src/app/(media)/redaktoeren/page.tsx (ny), src/app/(media)/redaktoeren/[slug]/page.tsx (ny), src/components/layout/Navigation.tsx, src/components/layout/Footer.tsx, public/images/articles/peterovigknudsen.jpg.
+* **Arkitektonisk konsekvens:** Følger (media)-layoutet med ren Lora-serif og sans-chrome. Ingen ændring i tællersystem eller complianceregler. Invarianter bevaret.
+---
+
