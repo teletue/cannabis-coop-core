@@ -42,6 +42,16 @@ export default function AdminMediaPage() {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [isPending, startTransition] = useTransition();
 
+  // Edit mode state for existing media items
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{
+    title: string;
+    curator_note: string;
+    status: string;
+  }>({ title: '', curator_note: '', status: 'published' });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const fetchItems = async () => {
     try {
       const res = await fetch('/api/admin/media');
@@ -133,6 +143,46 @@ export default function AdminMediaPage() {
     }
   };
 
+  const startEdit = (item: MediaItem) => {
+    setEditingId(item.id);
+    setEditForm({
+      title: item.title || '',
+      curator_note: item.curator_note || '',
+      status: item.status || 'published',
+    });
+    setEditError(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError(null);
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    setIsSavingEdit(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`/api/admin/media/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Kunne ikke gemme ændringerne');
+      }
+
+      const data = await res.json();
+      setItems(items.map(item => item.id === id ? { ...item, ...data.item } : item));
+      setEditingId(null);
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Fejl ved gemning');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       <header className="bg-white border-b border-stone-200 px-6 py-4">
@@ -174,7 +224,7 @@ export default function AdminMediaPage() {
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=... eller https://www.instagram.com/reel/..."
-                className="flex-1 text-sm px-3.5 py-2.5 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 bg-white"
+                className="flex-1 text-sm px-3.5 py-2.5 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 bg-white text-stone-800 placeholder-stone-400"
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -245,7 +295,7 @@ export default function AdminMediaPage() {
                   value={curatorNote}
                   onChange={e => setCuratorNote(e.target.value)}
                   placeholder="Skriv en kort personlig bemærkning, fx: 'Fantastisk gennemgang af terpener og ekstraktion.'"
-                  className="w-full text-sm px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 bg-white"
+                  className="w-full text-sm px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 bg-white text-stone-800 placeholder-stone-400"
                 />
               </div>
 
@@ -270,52 +320,157 @@ export default function AdminMediaPage() {
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {items.map(item => (
-                <div
-                  key={item.id}
-                  className="bg-white border border-stone-200 rounded-xl p-4 flex flex-col justify-between hover:border-stone-300 transition"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-600">
-                        {item.platform}
-                      </span>
-                      <span className="text-xs text-stone-400">
-                        {new Date(item.created_at).toLocaleDateString('da-DK')}
-                      </span>
-                    </div>
+              {items.map(item => {
+                const isEditing = editingId === item.id;
 
-                    <h4 className="text-sm font-semibold text-stone-800 mb-1 line-clamp-1">
-                      {item.title}
-                    </h4>
+                return (
+                  <div
+                    key={item.id}
+                    className="bg-white border border-stone-200 rounded-xl p-4 flex flex-col justify-between hover:border-stone-300 transition"
+                  >
+                    {isEditing ? (
+                      /* Edit Mode Form */
+                      <div>
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+                          <span className="text-[11px] font-semibold text-stone-700 uppercase">
+                            Rediger Opslag
+                          </span>
+                          <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-600">
+                            {item.platform}
+                          </span>
+                        </div>
 
-                    {item.curator_note && (
-                      <p className="text-xs text-emerald-800 bg-emerald-50 p-2 rounded mb-2 italic">
-                        &quot;{item.curator_note}&quot;
-                      </p>
+                        {editError && (
+                          <div className="p-2 mb-3 bg-red-50 text-red-700 border border-red-200 rounded text-xs">
+                            {editError}
+                          </div>
+                        )}
+
+                        <div className="mb-3">
+                          <label className="block text-[11px] font-semibold text-stone-600 uppercase tracking-wide mb-1">
+                            Titel
+                          </label>
+                          <input
+                            type="text"
+                            value={editForm.title}
+                            onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+                            className="w-full text-xs px-2.5 py-1.5 border border-stone-300 rounded-lg text-stone-800 bg-white focus:outline-none focus:border-stone-500"
+                          />
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="block text-[11px] font-semibold text-stone-600 uppercase tracking-wide mb-1">
+                            Redaktørnote
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={editForm.curator_note}
+                            onChange={e => setEditForm(f => ({ ...f, curator_note: e.target.value }))}
+                            placeholder="Skriv redaktørens note..."
+                            className="w-full text-xs px-2.5 py-1.5 border border-stone-300 rounded-lg text-stone-800 bg-white placeholder-stone-400 focus:outline-none focus:border-stone-500"
+                          />
+                        </div>
+
+                        <div className="mb-4">
+                          <label className="block text-[11px] font-semibold text-stone-600 uppercase tracking-wide mb-1">
+                            Synlighed
+                          </label>
+                          <select
+                            value={editForm.status}
+                            onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                            className="text-xs px-2.5 py-1.5 border border-stone-300 rounded-lg text-stone-800 bg-white focus:outline-none focus:border-stone-500"
+                          >
+                            <option value="published">Offentlig (vises på weeds.dk/media)</option>
+                            <option value="hidden">Skjult</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-3 border-t border-stone-100">
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEdit(item.id)}
+                            disabled={isSavingEdit}
+                            className="px-3.5 py-1.5 bg-emerald-700 text-white rounded-lg text-xs font-medium hover:bg-emerald-600 disabled:opacity-50 transition"
+                          >
+                            {isSavingEdit ? 'Gemmer...' : 'Gem ændringer'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            disabled={isSavingEdit}
+                            className="px-3 py-1.5 bg-stone-100 text-stone-600 rounded-lg text-xs font-medium hover:bg-stone-200 transition"
+                          >
+                            Annuller
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* View Mode Card */
+                      <>
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-600">
+                                {item.platform}
+                              </span>
+                              {item.status === 'hidden' && (
+                                <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                                  Skjult
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-stone-400">
+                              {new Date(item.created_at).toLocaleDateString('da-DK')}
+                            </span>
+                          </div>
+
+                          <h4 className="text-sm font-semibold text-stone-800 mb-1 line-clamp-1">
+                            {item.title}
+                          </h4>
+
+                          {item.curator_note ? (
+                            <div className="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-lg mb-2 border-l-2 border-emerald-600">
+                              <p className="italic">&quot;{item.curator_note}&quot;</p>
+                              <p className="text-[10px] text-emerald-700 font-medium mt-1">Redaktørnote</p>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-stone-400 italic mb-2">Ingen redaktørnote tilføjet.</p>
+                          )}
+
+                          <p className="text-xs text-stone-400 truncate mb-3">{item.url}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-stone-100">
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-stone-500 hover:text-stone-800 underline"
+                          >
+                            Åbn link ↗
+                          </a>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(item)}
+                              className="text-xs text-stone-700 hover:text-stone-900 font-medium px-2 py-1 rounded bg-stone-100 hover:bg-stone-200 transition"
+                            >
+                              Rediger
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(item.id)}
+                              className="text-xs text-red-600 hover:text-red-700"
+                            >
+                              Slet
+                            </button>
+                          </div>
+                        </div>
+                      </>
                     )}
-
-                    <p className="text-xs text-stone-400 truncate mb-3">{item.url}</p>
                   </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-stone-100">
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-stone-500 hover:text-stone-800 underline"
-                    >
-                      Åbn link ↗
-                    </a>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="text-xs text-red-600 hover:text-red-700"
-                    >
-                      Slet
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -323,4 +478,3 @@ export default function AdminMediaPage() {
     </div>
   );
 }
-

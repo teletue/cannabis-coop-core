@@ -87,3 +87,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Følger (media)-layoutet med ren Lora-serif og sans-chrome. Ingen ændring i tællersystem eller complianceregler. Invarianter bevaret.
 ---
 
+**15. november 2026 - 07:28 - MEDIA HUB FORBEDRINGER: MØRK TEKST OG REDIGERINGSFUNKTION**
+* **Opgave:** 1) Sikre mørk tekstfarve (text-stone-800) i alle inputfelter og tekstområder i Media Hub (/admin/media), så indtastet tekst og links ikke falder i ét med den hvide baggrund. 2) Tilføje inline redigeringsfunktion på mediekortene i admin-oversigten, så redaktørnoter, titel og status (published/hidden) kan redigeres og opdateres direkte via PATCH /api/admin/media/[id].
+* **Filer berørt:** logbog.md (denne fil), src/app/admin/media/page.tsx, src/app/api/admin/media/[id]/route.ts.
+* **Arkitektonisk konsekvens:** Forbedret UX for indholdskuratoren. PATCH-endepunktet opdateres til at tillade eksplicit overskrivning eller tømning af felter. Invarianter bevaret.
+---
+
