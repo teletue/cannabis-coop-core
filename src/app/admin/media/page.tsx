@@ -15,8 +15,15 @@ interface MediaItem {
   embed_url: string | null;
   author_name: string | null;
   curator_note: string | null;
+  profile_id?: string | null;
+  profile_name?: string | null;
   status: string;
   created_at: string;
+}
+
+interface ProfileOption {
+  id: string;
+  name: string;
 }
 
 interface PreviewData {
@@ -34,12 +41,14 @@ interface PreviewData {
 export default function AdminMediaPage() {
   const [url, setUrl] = useState('');
   const [curatorNote, setCuratorNote] = useState('');
+  const [profileId, setProfileId] = useState('');
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const [items, setItems] = useState<MediaItem[]>([]);
+  const [profiles, setProfiles] = useState<ProfileOption[]>([]);
   const [isPending, startTransition] = useTransition();
 
   // Edit mode state for existing media items
@@ -48,7 +57,8 @@ export default function AdminMediaPage() {
     title: string;
     curator_note: string;
     status: string;
-  }>({ title: '', curator_note: '', status: 'published' });
+    profile_id: string;
+  }>({ title: '', curator_note: '', status: 'published', profile_id: '' });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -68,6 +78,12 @@ export default function AdminMediaPage() {
       .then(r => r.json())
       .then(data => {
         if (!ignore && data.media) setItems(data.media);
+      })
+      .catch(() => {});
+    fetch('/api/admin/profiles')
+      .then(r => r.json())
+      .then(data => {
+        if (!ignore && data.profiles) setProfiles(data.profiles);
       })
       .catch(() => {});
     return () => {
@@ -112,6 +128,7 @@ export default function AdminMediaPage() {
           body: JSON.stringify({
             ...preview,
             curator_note: curatorNote.trim() || null,
+            profile_id: profileId || null,
           }),
         });
 
@@ -123,6 +140,7 @@ export default function AdminMediaPage() {
         setSuccess('Opslaget er tilføjet og publiceret på weeds.dk/media!');
         setUrl('');
         setCuratorNote('');
+        setProfileId('');
         setPreview(null);
         fetchItems();
       } catch (err) {
@@ -149,6 +167,7 @@ export default function AdminMediaPage() {
       title: item.title || '',
       curator_note: item.curator_note || '',
       status: item.status || 'published',
+      profile_id: item.profile_id || '',
     });
     setEditError(null);
   };
@@ -165,7 +184,10 @@ export default function AdminMediaPage() {
       const res = await fetch(`/api/admin/media/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          profile_id: editForm.profile_id || null,
+        }),
       });
 
       if (!res.ok) {
@@ -174,7 +196,14 @@ export default function AdminMediaPage() {
       }
 
       const data = await res.json();
-      setItems(items.map(item => item.id === id ? { ...item, ...data.item } : item));
+      const matchedProfile = profiles.find(p => p.id === (editForm.profile_id || null));
+      setItems(
+        items.map(item =>
+          item.id === id
+            ? { ...item, ...data.item, profile_name: matchedProfile?.name || null }
+            : item
+        )
+      );
       setEditingId(null);
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Fejl ved gemning');
@@ -293,6 +322,27 @@ export default function AdminMediaPage() {
                 </div>
               </div>
 
+              {/* Profile link (Blå Bog) */}
+              {profiles.length > 0 && (
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
+                    Kobl til Blå Bog-profil (valgfrit)
+                  </label>
+                  <select
+                    value={profileId}
+                    onChange={e => setProfileId(e.target.value)}
+                    className="w-full text-sm px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 bg-white text-stone-800"
+                  >
+                    <option value="">— Ingen profil —</option>
+                    {profiles.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Curator note */}
               <div className="mb-4">
                 <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
@@ -379,18 +429,37 @@ export default function AdminMediaPage() {
                           />
                         </div>
 
-                        <div className="mb-4">
-                          <label className="block text-[11px] font-semibold text-stone-600 uppercase tracking-wide mb-1">
-                            Synlighed
-                          </label>
-                          <select
-                            value={editForm.status}
-                            onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
-                            className="text-xs px-2.5 py-1.5 border border-stone-300 rounded-lg text-stone-800 bg-white focus:outline-none focus:border-stone-500"
-                          >
-                            <option value="published">Offentlig (vises på weeds.dk/media)</option>
-                            <option value="hidden">Skjult</option>
-                          </select>
+                        <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-stone-600 uppercase tracking-wide mb-1">
+                              Synlighed
+                            </label>
+                            <select
+                              value={editForm.status}
+                              onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                              className="w-full text-xs px-2.5 py-1.5 border border-stone-300 rounded-lg text-stone-800 bg-white focus:outline-none focus:border-stone-500"
+                            >
+                              <option value="published">Offentlig (vises på weeds.dk/media)</option>
+                              <option value="hidden">Skjult</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-semibold text-stone-600 uppercase tracking-wide mb-1">
+                              Blå Bog-profil
+                            </label>
+                            <select
+                              value={editForm.profile_id}
+                              onChange={e => setEditForm(f => ({ ...f, profile_id: e.target.value }))}
+                              className="w-full text-xs px-2.5 py-1.5 border border-stone-300 rounded-lg text-stone-800 bg-white focus:outline-none focus:border-stone-500"
+                            >
+                              <option value="">— Ingen profil —</option>
+                              {profiles.map(p => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-2 pt-3 border-t border-stone-100">
@@ -417,10 +486,15 @@ export default function AdminMediaPage() {
                       <>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-600">
                                 {item.platform}
                               </span>
+                              {item.profile_name && (
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  {item.profile_name}
+                                </span>
+                              )}
                               {item.status === 'hidden' && (
                                 <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
                                   Skjult

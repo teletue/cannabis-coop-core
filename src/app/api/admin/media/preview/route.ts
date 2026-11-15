@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         description: 'Se opslaget på Instagram',
         thumbnail_url: '',
         embed_id: igCode,
-        embed_url: `https://www.instagram.com/p/${igCode}/embed/captioned/`,
+        embed_url: `https://www.instagram.com/${isReel ? 'reel' : 'p'}/${igCode}/embed/`,
         author_name: 'Instagram',
       };
       return NextResponse.json({ preview });
@@ -148,14 +148,24 @@ export async function POST(request: Request) {
 
     // 4. Facebook
     if (parsedUrl.hostname.includes('facebook.com') || parsedUrl.hostname.includes('fb.watch')) {
+      const lowerUrl = rawUrl.toLowerCase();
+      const isReel = lowerUrl.includes('/reel/');
+      const isVideo =
+        isReel ||
+        lowerUrl.includes('/videos/') ||
+        lowerUrl.includes('/watch') ||
+        parsedUrl.hostname.includes('fb.watch');
+
       const preview: MediaPreview = {
         url: rawUrl,
         platform: 'facebook',
-        media_type: 'post',
-        title: 'Facebook Opslag',
+        media_type: isVideo ? 'video' : 'post',
+        title: isReel ? 'Facebook Reel' : isVideo ? 'Facebook Video' : 'Facebook Opslag',
         description: 'Se indholdet på Facebook',
         thumbnail_url: '',
-        embed_url: `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(rawUrl)}&show_text=true`,
+        embed_url: isVideo
+          ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=500`
+          : `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(rawUrl)}&show_text=true&width=500`,
         author_name: 'Facebook',
       };
       return NextResponse.json({ preview });

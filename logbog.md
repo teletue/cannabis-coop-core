@@ -106,3 +106,10 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Filer berørt:** logbog.md (denne fil), src/app/admin/media/profiler/page.tsx, src/app/(media)/media/profiler/[slug]/page.tsx.
 * **Arkitektonisk konsekvens:** Bruger det eksisterende `social_links`-JSONB-felt i `profiles`-tabellen uden skemaændring. Invarianter bevaret.
 ---
+
+
+**15. november 2026 - 14:23 - ÆGTE INSTAGRAM/FACEBOOK EMBEDS & PROFIL-KOBLING I MEDIA HUB**
+* **Opgave:** 1) Understøtte Facebook Reels/videoer (`plugins/video.php`) og Instagram Reels/opslag korrekt i `/api/admin/media/preview`. 2) Rendere ægte `<iframe>`-embeds i `MediaFeed.tsx` for Instagram og Facebook (inkl. Reels), så indlejret indhold vises direkte under "Social & Reels". 3) Tilføje Blå Bog-profil-vælger ved oprettelse og redigering i `/admin/media`.
+* **Filer berørt:** logbog.md (denne fil), src/app/api/admin/media/preview/route.ts, src/components/media/MediaFeed.tsx, src/app/admin/media/page.tsx.
+* **Arkitektonisk konsekvens:** Eksisterende `embed_url`-kolonne anvendes direkte. Fallback-link ("Se kilde ↗") bevares i kortets footer. Invarianter bevaret.
+---
