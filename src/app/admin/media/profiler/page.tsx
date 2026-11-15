@@ -12,7 +12,7 @@ interface Profile {
   bio: string | null;
   image_url: string | null;
   website_url: string | null;
-  social_links: { instagram?: string; youtube?: string; linkedin?: string; twitter?: string };
+  social_links: { instagram?: string; youtube?: string; facebook?: string; linkedin?: string; twitter?: string };
   tags: string[];
   status: string;
   media_count?: number;
@@ -47,6 +47,7 @@ export default function AdminProfilesPage() {
     website_url: '',
     instagram: '',
     youtube: '',
+    facebook: '',
     tags: '',
   });
   const [creating, setCreating] = useState(false);
@@ -61,6 +62,9 @@ export default function AdminProfilesPage() {
     bio: '',
     image_url: '',
     website_url: '',
+    instagram: '',
+    youtube: '',
+    facebook: '',
     status: 'published',
   });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -118,6 +122,7 @@ export default function AdminProfilesPage() {
           social_links: {
             ...(form.instagram ? { instagram: form.instagram } : {}),
             ...(form.youtube ? { youtube: form.youtube } : {}),
+            ...(form.facebook ? { facebook: form.facebook } : {}),
           },
           tags: form.tags
             .split(',')
@@ -137,6 +142,7 @@ export default function AdminProfilesPage() {
         website_url: '',
         instagram: '',
         youtube: '',
+        facebook: '',
         tags: '',
       });
       setShowCreate(false);
@@ -157,6 +163,9 @@ export default function AdminProfilesPage() {
       bio: p.bio || '',
       image_url: p.image_url || '',
       website_url: p.website_url || '',
+      instagram: p.social_links?.instagram || '',
+      youtube: p.social_links?.youtube || '',
+      facebook: p.social_links?.facebook || '',
       status: p.status || 'published',
     });
   };
@@ -164,10 +173,22 @@ export default function AdminProfilesPage() {
   const handleSaveEdit = async (id: string) => {
     setSavingEdit(true);
     try {
+      const existing = profiles.find(p => p.id === id);
+      const { instagram, youtube, facebook, ...restEdit } = editForm;
+      const social_links: Record<string, string> = {
+        ...(existing?.social_links || {}),
+      };
+      if (instagram.trim()) social_links.instagram = instagram.trim();
+      else delete social_links.instagram;
+      if (youtube.trim()) social_links.youtube = youtube.trim();
+      else delete social_links.youtube;
+      if (facebook.trim()) social_links.facebook = facebook.trim();
+      else delete social_links.facebook;
+
       const res = await fetch(`/api/admin/profiles/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({ ...restEdit, social_links }),
       });
       if (res.ok) {
         setEditingId(null);
@@ -392,6 +413,19 @@ export default function AdminProfilesPage() {
                   className={inputCls}
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
+                  Facebook Link (valgfrit)
+                </label>
+                <input
+                  type="url"
+                  value={form.facebook}
+                  onChange={e => setForm({ ...form, facebook: e.target.value })}
+                  placeholder="https://facebook.com/..."
+                  className={inputCls}
+                />
+              </div>
             </div>
 
             <div className="mb-4">
@@ -466,6 +500,36 @@ export default function AdminProfilesPage() {
                           <option value="published">Offentlig</option>
                           <option value="hidden">Skjult</option>
                         </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-500 mb-1">Facebook Link</label>
+                        <input
+                          type="url"
+                          value={editForm.facebook}
+                          onChange={e => setEditForm({ ...editForm, facebook: e.target.value })}
+                          placeholder="https://facebook.com/..."
+                          className={inputCls}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-500 mb-1">Instagram Link</label>
+                        <input
+                          type="url"
+                          value={editForm.instagram}
+                          onChange={e => setEditForm({ ...editForm, instagram: e.target.value })}
+                          placeholder="https://instagram.com/..."
+                          className={inputCls}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-500 mb-1">YouTube Link</label>
+                        <input
+                          type="url"
+                          value={editForm.youtube}
+                          onChange={e => setEditForm({ ...editForm, youtube: e.target.value })}
+                          placeholder="https://youtube.com/..."
+                          className={inputCls}
+                        />
                       </div>
                     </div>
                     <div className="mb-4">

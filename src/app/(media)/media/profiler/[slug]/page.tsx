@@ -15,7 +15,7 @@ interface Profile {
   bio: string | null;
   image_url: string | null;
   website_url: string | null;
-  social_links: { instagram?: string; youtube?: string; linkedin?: string; twitter?: string };
+  social_links: { instagram?: string; youtube?: string; facebook?: string; linkedin?: string; twitter?: string };
   tags: string[];
 }
 
@@ -156,6 +156,16 @@ export default async function ProfileDetailPage({ params }: { params: Promise<{ 
                   className="text-xs px-3.5 py-1.5 rounded-full bg-[#FAF9F6] border border-[#E2E8F0] text-[#2D3748] hover:border-[#2D3748] transition"
                 >
                   Instagram ↗
+                </a>
+              )}
+              {social.facebook && (
+                <a
+                  href={social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3.5 py-1.5 rounded-full bg-[#FAF9F6] border border-[#E2E8F0] text-[#2D3748] hover:border-[#2D3748] transition"
+                >
+                  Facebook ↗
                 </a>
               )}
             </div>

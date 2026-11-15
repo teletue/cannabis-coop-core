@@ -99,3 +99,10 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Ny tabel profiles i PostgreSQL samt fremmednøgle profile_id på media_items (ON DELETE SET NULL). Scraperen kører udelukkende på eksisterende offentlige RSS/oEmbed/søge-endpoints på forespørgsel i admin og gemmer kun efter kuratorens eksplicitte godkendelse. Invarianter bevaret.
 ---
 
+
+
+**15. november 2026 - 09:47 - FACEBOOK-LINK PÅ BLÅ BOG-PROFILER**
+* **Opgave:** Tilføjelse af Facebook-link under sociale links på profiler i Blå Bog, både ved oprettelse og inline-redigering i `/admin/media/profiler` samt visning på den offentlige profilside `/media/profiler/[slug]`. Samtidig gøres Instagram og YouTube redigerbare i admin-editformularen.
+* **Filer berørt:** logbog.md (denne fil), src/app/admin/media/profiler/page.tsx, src/app/(media)/media/profiler/[slug]/page.tsx.
+* **Arkitektonisk konsekvens:** Bruger det eksisterende `social_links`-JSONB-felt i `profiles`-tabellen uden skemaændring. Invarianter bevaret.
+---
