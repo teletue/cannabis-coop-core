@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export interface MediaItem {
   id: string;
@@ -14,6 +15,8 @@ export interface MediaItem {
   embed_url: string | null;
   author_name: string | null;
   curator_note: string | null;
+  profile_name?: string | null;
+  profile_slug?: string | null;
   created_at: string;
 }
 
@@ -173,13 +176,23 @@ export default function MediaFeed({ initialItems }: MediaFeedProps) {
                 </div>
 
                 {/* Footer link */}
-                <div className="px-6 py-3 bg-[#FAF9F6] border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#718096]">
-                  <span>{item.author_name || item.platform}</span>
+                <div className="px-6 py-3 bg-[#FAF9F6] border-t border-[#E2E8F0] flex items-center justify-between gap-2 text-xs text-[#718096]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="truncate">{item.author_name || item.platform}</span>
+                    {item.profile_name && item.profile_slug && (
+                      <Link
+                        href={`/media/profiler/${item.profile_slug}`}
+                        className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full bg-[#E8EFE8] text-[#4A6B4A] hover:bg-[#D4E2D4] font-medium transition-colors"
+                      >
+                        {item.profile_name}
+                      </Link>
+                    )}
+                  </div>
                   <a
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-medium text-[#2D3748] hover:text-[#6B8E6B] transition-colors flex items-center gap-1"
+                    className="shrink-0 font-medium text-[#2D3748] hover:text-[#6B8E6B] transition-colors flex items-center gap-1"
                   >
                     Se kilde
                     <span aria-hidden="true">↗</span>

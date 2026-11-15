@@ -194,13 +194,21 @@ export default function AdminMediaPage() {
             <span className="text-stone-300">|</span>
             <span className="text-sm font-semibold text-stone-800">Media Hub</span>
           </div>
-          <Link
-            href="/media"
-            target="_blank"
-            className="text-xs px-3 py-1.5 bg-[#FAF9F6] border border-stone-200 text-stone-600 rounded-lg hover:bg-stone-100 transition"
-          >
-            Se live side ↗
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/media/profiler"
+              className="text-xs px-3 py-1.5 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition font-medium"
+            >
+              Blå Bog &amp; Scraper →
+            </Link>
+            <Link
+              href="/media"
+              target="_blank"
+              className="text-xs px-3 py-1.5 bg-[#FAF9F6] border border-stone-200 text-stone-600 rounded-lg hover:bg-stone-100 transition"
+            >
+              Se live side ↗
+            </Link>
+          </div>
         </div>
       </header>
 

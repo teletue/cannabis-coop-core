@@ -18,8 +18,9 @@ async function getStats() {
 }
 
 const NAV = [
-  { href: '/admin/media',        label: 'Media Hub',          desc: 'Indsæt links og del fedt eksternt content', icon: '🎬' },
-  { href: '/admin/articles',     label: 'Journal Articles',  desc: 'Rediger publiceret indhold direkte',       icon: '📰' },
+  { href: '/admin/media',          label: 'Media Hub',          desc: 'Indsæt links og del fedt eksternt content', icon: '🎬' },
+  { href: '/admin/media/profiler', label: 'Blå Bog & Scraper',  desc: 'Personer, virksomheder og web-discovery',  icon: '📘' },
+  { href: '/admin/articles',       label: 'Journal Articles',   desc: 'Rediger publiceret indhold direkte',       icon: '📰' },
   { href: '/admin/feltnoter',    label: 'Feltnoter',          desc: 'Original redaktionel kommentar',            icon: '✍️' },
   { href: '/admin/drafts',       label: 'Kladder',            desc: 'Pipeline-genererede artikler til review',  icon: '📝' },
   { href: '/admin/inbox',        label: 'Råsignaler',         desc: 'Harvestede kilder og scorede signaler',    icon: '📥' },

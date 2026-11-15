@@ -93,3 +93,9 @@ Her deklareres alle systemiske ændringer før de eksekveres. Koden rører ikke 
 * **Arkitektonisk konsekvens:** Forbedret UX for indholdskuratoren. PATCH-endepunktet opdateres til at tillade eksplicit overskrivning eller tømning af felter. Invarianter bevaret.
 ---
 
+**15. november 2026 - 07:52 - BLÅ BOG & MEDIA DISCOVERY SCRAPER**
+* **Opgave:** Udvidelse af Media Hub med en »Blå Bog« for personer og virksomheder (biografi, rolle, links) samt en automatisk web-scraper, der finder yderligere videoer og nyhedsartikler (YouTube + Google News RSS) for en given profil med ét-klik import til media_items.
+* **Filer berørt:** logbog.md (denne fil), migration_v2.10_profiles.sql (ny), src/app/api/admin/profiles/route.ts (ny), src/app/api/admin/profiles/[id]/route.ts (ny), src/app/api/admin/profiles/[id]/discover/route.ts (ny), src/app/api/admin/media/route.ts, src/app/api/admin/media/[id]/route.ts, src/app/admin/media/page.tsx, src/app/admin/media/profiler/page.tsx (ny), src/app/admin/page.tsx, src/app/(media)/media/page.tsx, src/app/(media)/media/profiler/[slug]/page.tsx (ny), src/components/media/MediaFeed.tsx.
+* **Arkitektonisk konsekvens:** Ny tabel profiles i PostgreSQL samt fremmednøgle profile_id på media_items (ON DELETE SET NULL). Scraperen kører udelukkende på eksisterende offentlige RSS/oEmbed/søge-endpoints på forespørgsel i admin og gemmer kun efter kuratorens eksplicitte godkendelse. Invarianter bevaret.
+---
+
